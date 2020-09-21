@@ -107,8 +107,8 @@ func UpdateUserPassword(c *gin.Context) {
 // @Accept  json
 // @Produce json
 // @Param Authorization header string true "Authentication header"
-// @Param id path string true "用户ID"
-// @Param orgId query string true "组织ID"
+// @Param id path uint64 true "用户ID"
+// @Param orgId query uint64 true "组织ID"
 // @Success 200 {object} dto.MsgResponse
 // @Failure 400 {object} dto.MsgResponse
 // @Failure 500 {object} dto.MsgResponse
@@ -163,9 +163,9 @@ func DeleteUser(c *gin.Context) {
 // @Accept  json
 // @Produce json
 // @Param Authorization header string true "Authentication header"
-// @Param orgId query string false "组织ID"
-// @Param pageNo query string false "页码"
-// @Param pageSize query string false "页大小"
+// @Param orgId query uint64 false "组织ID"
+// @Param pageNo query int false "页码"
+// @Param pageSize query int false "页大小"
 // @Success 200 {object} dto.GetUsersResponse
 // @Failure 400 {object} dto.GetUsersResponse
 // @Failure 500 {object} dto.GetUsersResponse
