@@ -1,0 +1,235 @@
+kind: pipeline
+type: docker
+name: {{ .ProjectConfig.PackageName }}
+
+steps:
+  - name: swag init
+    image: fspub/swag:1.6.5
+    commands:
+      - /app/bin/swag init
+
+  - name: build
+    image: golang
+    environment:
+      GOPROXY: https://mirrors.aliyun.com/goproxy/,direct
+    commands:
+      - go mod tidy
+      - go mod download
+      - go mod vendor
+      - go build -o bin/{{ .ProjectConfig.BuildName }}
+
+  - name: docker-push
+    image: plugins/docker
+    settings:
+      username: fspub
+      password: yf123456
+      mirror: https://registry.docker-cn.com
+      repo: fspub/{{ .ProjectConfig.BuildName }}
+      tags: ${DRONE_COMMIT_BRANCH/master/latest}
+    when:
+      event:
+        - promote
+      target:
+        - docker-push
+
+trigger:
+  branch:
+    - master
+  target:
+    exclude:
+      - docker-install
+      - docker-uninstall
+      - api-docker-test
+      - k8s-test-apply
+      - k8s-test-delete
+      - k8s-test-api-test
+      - k8s-prod-apply
+      - k8s-prod-delete
+      - k8s-prod-api-test
+
+---
+
+kind: pipeline
+type: docker
+name: {{ .ProjectConfig.PackageName }} docker
+
+steps:
+  - name: docker-install
+    image: appleboy/drone-ssh
+    settings:
+      host: 10.10.10.27
+      username: yf-gogs
+      password: yf123456
+      port: 22
+      script:
+        - cd /home/yf-gogs/drone/{{ .ProjectConfig.PackageName }}
+        - ./install.sh ${DRONE_COMMIT_BRANCH}
+    when:
+      event:
+        - promote
+      target:
+        - docker-install
+
+  - name: docker-uninstall
+    image: appleboy/drone-ssh
+    settings:
+      host: 10.10.10.27
+      username: yf-gogs
+      password: yf123456
+      port: 22
+      script:
+        - cd /home/yf-gogs/drone/{{ .ProjectConfig.PackageName }}
+        - ./uninstall.sh ${DRONE_COMMIT_BRANCH}
+    when:
+      event:
+        - promote
+      target:
+        - docker-uninstall
+
+  - name: api-docker-test
+    image: fspub/api-test
+    settings:
+      url: http://10.10.10.27:10070/{{ .ProjectConfig.UrlPrefix }}/api/admin
+    when:
+      event:
+        - promote
+      target:
+        - api-docker-test
+
+trigger:
+  branch:
+    - master
+  target:
+    include:
+      - docker-install
+      - docker-uninstall
+      - api-docker-test
+
+---
+
+kind: pipeline
+type: docker
+name: {{ .ProjectConfig.PackageName }} k8s
+
+steps:
+  - name: k8s-test-apply
+    image: appleboy/drone-ssh
+    settings:
+      host: 10.10.10.221
+      username: yf-k8s-master
+      password: yf123456
+      port: 22
+      script:
+        - cd /home/yf-k8s-master/k8s_config/{{ .ProjectConfig.PackageName }}
+        - >
+          export MYSQL_ADDRESS=10.10.10.43 &&
+          export MYSQL_PORT=3306 &&
+          export MYSQL_SERVICE_PORT=3306 &&
+          export REPLICAS=3 &&
+          export VERSION=${DRONE_COMMIT_BRANCH/master/latest} &&
+          export AUTH_CONTAINER_PORT=30090 &&
+          export NFS_ADDRESS=10.10.10.221 &&
+          export NFS_CONFIG_PATH=/home/yf-k8s-master/nfs/{{ .ProjectConfig.PackageName }} &&
+        - |
+          eval "cat <<EOF
+          $(< {{ .ProjectConfig.PackageName }}.tpl)
+          EOF" > {{ .ProjectConfig.PackageName }}.yaml
+        - kubectl apply -f {{ .ProjectConfig.PackageName }}.yaml
+    when:
+      event:
+        - promote
+      target:
+        - k8s-test-apply
+
+  - name: k8s-test-delete
+    image: appleboy/drone-ssh
+    settings:
+      host: 10.10.10.221
+      username: yf-k8s-master
+      password: yf123456
+      port: 22
+      script:
+        - cd /home/yf-k8s-master/k8s_config/{{ .ProjectConfig.PackageName }}
+        - kubectl delete -f {{ .ProjectConfig.PackageName }}.yaml
+    when:
+      event:
+        - promote
+      target:
+        - k8s-test-delete
+
+  - name: k8s-test-api-test
+    image: fspub/api-test
+    settings:
+      url: http://10.10.10.221:30090/{{ .ProjectConfig.UrlPrefix }}/api/admin
+    when:
+      event:
+        - promote
+      target:
+        - k8s-test-api-test
+
+  - name: k8s-prod-apply
+    image: appleboy/drone-ssh
+    settings:
+      host: 10.10.10.160
+      username: k8s
+      password: k8s
+      port: 22
+      script:
+        - cd /home/k8s/k8s_config/{{ .ProjectConfig.PackageName }}
+        - >
+          export MYSQL_ADDRESS=10.10.10.167 &&
+          export MYSQL_PORT=3306 &&
+          export MYSQL_SERVICE_PORT=3306 &&
+          export REPLICAS=5 &&
+          export VERSION=${DRONE_COMMIT_BRANCH/master/latest} &&
+          export AUTH_CONTAINER_PORT=30030 &&
+          export NFS_ADDRESS=10.10.10.167 &&
+          export NFS_CONFIG_PATH=/home/k8s/nfs/{{ .ProjectConfig.PackageName }} &&
+        - |
+          eval "cat <<EOF
+          $(< {{ .ProjectConfig.PackageName }}.tpl)
+          EOF" > {{ .ProjectConfig.PackageName }}.yaml
+        - kubectl apply -f {{ .ProjectConfig.PackageName }}.yaml
+    when:
+      event:
+        - promote
+      target:
+        - k8s-prod-apply
+
+  - name: k8s-prod-delete
+    image: appleboy/drone-ssh
+    settings:
+      host: 10.10.10.160
+      username: k8s
+      password: k8s
+      port: 22
+      script:
+        - cd /home/k8s/k8s_config/{{ .ProjectConfig.PackageName }}
+        - kubectl delete -f {{ .ProjectConfig.PackageName }}.yaml
+    when:
+      event:
+        - promote
+      target:
+        - k8s-prod-delete
+
+  - name: k8s-prod-api-test
+    image: fspub/api-test
+    settings:
+      url: http://10.10.10.160:30030/{{ .ProjectConfig.UrlPrefix }}/api/admin
+    when:
+      event:
+        - promote
+      target:
+        - k8s-prod-api-test
+
+trigger:
+  branch:
+    - master
+  target:
+    include:
+      - k8s-test-apply
+      - k8s-test-delete
+      - k8s-test-api-test
+      - k8s-prod-apply
+      - k8s-prod-delete
+      - k8s-prod-api-test

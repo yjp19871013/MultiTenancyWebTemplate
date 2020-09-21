@@ -1,0 +1,24 @@
+project:
+  version: 0.1
+  projectName: Simple
+  lowCaseProjectName: simple
+  packageName: simple
+  swaggerAppName: simple
+  urlPrefix: simple
+  buildName: simple
+  jwt_secret_key: key
+server:
+  port: 10030
+database:
+  username: "username"
+  password: "password"
+  address: "localhost:3306"
+  schema: "schema"
+casbin:
+  config_file_path: path
+  domain: domain
+admin:
+  username: super username
+  password: super password
+  role: super role
+role_config_file_path: path

@@ -1,0 +1,106 @@
+apiVersion: admin
+kind: Namespace
+metadata:
+  name: {{ .ProjectConfig.PackageName }}
+  labels:
+    name: {{ .ProjectConfig.PackageName }}
+
+---
+
+apiVersion: admin
+kind: Endpoints
+metadata:
+  name: mysql
+  namespace: {{ .ProjectConfig.PackageName }}
+  labels:
+    endpoints: mysql
+subsets:
+  - addresses:
+      - ip: 10.10.10.167
+    ports:
+      - port: 3306
+
+---
+
+apiVersion: admin
+kind: Service
+metadata:
+  name: mysql
+  namespace: {{ .ProjectConfig.PackageName }}
+  labels:
+    service: mysql
+spec:
+  ports:
+    - port: 3306
+
+---
+
+apiVersion: apps/admin
+kind: Deployment
+metadata:
+  name: {{ .ProjectConfig.PackageName }}
+  namespace: {{ .ProjectConfig.PackageName }}
+  labels:
+    deployment: {{ .ProjectConfig.PackageName }}
+spec:
+  minReadySeconds: 20
+  replicas: 5
+  selector:
+    matchLabels:
+      app: {{ .ProjectConfig.PackageName }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 30%
+      maxUnavailable: 30%
+    type: RollingUpdate
+  template:
+    metadata:
+      name: {{ .ProjectConfig.PackageName }}
+      labels:
+        app: {{ .ProjectConfig.PackageName }}
+    spec:
+      containers:
+        - image: fspub/{{ .ProjectConfig.BuildName }}:0.2
+          imagePullPolicy: Always
+          name: {{ .ProjectConfig.PackageName }}
+          env:
+            - name: CONFIG_FILE_PATH
+              value: /app/bin/config/config.yml
+          ports:
+            - containerPort: 30300
+              name: http
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /app/bin/config
+              name: config
+            - mountPath: /etc/localtime
+              name: localtime
+      volumes:
+        - name: config
+          nfs:
+            server: 10.10.10.167
+            path: /home/k8s/nfs/{{ .ProjectConfig.BuildName }}/config
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+      restartPolicy: Always
+
+---
+
+apiVersion: admin
+kind: Service
+metadata:
+  name: {{ .ProjectConfig.PackageName }}
+  namespace: {{ .ProjectConfig.PackageName }}
+  labels:
+    service: {{ .ProjectConfig.PackageName }}
+spec:
+  type: NodePort
+  selector:
+    app: {{ .ProjectConfig.PackageName }}
+  ports:
+    - port: 30300
+      name: http
+      protocol: TCP
+      targetPort: http
+      nodePort: 30300

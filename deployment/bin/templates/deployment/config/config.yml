@@ -1,0 +1,11 @@
+version: {{ .ProjectConfig.Version }}
+server:
+  port: :{{ .ServerConfig.Port }}
+database:
+  username: {{ .DatabaseConfig.Username }}
+  password: {{ .DatabaseConfig.Password }}
+  address: {{ .DatabaseConfig.Address }}
+  schema: {{ .DatabaseConfig.Schema }}
+casbin:
+  config_file_path: {{ .CasbinConfig.ConfigFilePath }}
+role_config_file_path: {{ .RoleConfigFilePath }}
