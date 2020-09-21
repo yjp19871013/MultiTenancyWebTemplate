@@ -40,7 +40,7 @@ func initAdmin(orgInfo *model.OrganizationInfo) error {
         return err
     }
 
-    err = AddUsersToOrganization(orgInfo.ID, []uint64{userID})
+    err = db.AddUsersToOrganization(orgInfo.ID, []db.User{db.User{ID: userID}})
     if err != nil {
         return err
     }
@@ -73,17 +73,13 @@ func UpdateCommonUserPassword(orgID uint64, id uint64, password string) error {
 		return model.ErrParam
 	}
 
-	user, err := db.NewUserQuery().SetOrganizationID(orgID).SetID(id).QueryOne()
+	_, err := db.NewUserQuery().SetOrganizationID(orgID).SetID(id).NotUserName(adminUserName).QueryOne()
 	if err != nil {
 		if err == db.ErrUserNotExist {
 			return model.ErrUserNotExist
 		}
 
 		return err
-	}
-
-	if user.UserName == adminUserName {
-		return model.ErrUserNotExist
 	}
 
 	userData := map[string]interface{}{
@@ -98,17 +94,13 @@ func DeleteCommonUser(orgInfo *model.OrganizationInfo, id uint64) error {
 		return model.ErrParam
 	}
 
-	user, err := db.NewUserQuery().SetOrganizationID(orgInfo.ID).SetID(id).QueryOne()
+	user, err := db.NewUserQuery().SetOrganizationID(orgInfo.ID).SetID(id).NotUserName(adminUserName).QueryOne()
 	if err != nil {
 		if err == db.ErrUserNotExist {
 			return model.ErrUserNotExist
 		}
 
 		return err
-	}
-
-	if user.UserName == adminUserName {
-		return model.ErrUserNotExist
 	}
 
 	err = casbin.DeleteRoleForUser(orgInfo.Name, user.ID, user.Role)
@@ -206,22 +198,18 @@ func SetUserCurrentOrganization(userID uint64, currentOrgID uint64) error {
 		return model.ErrParam
 	}
 
-	organization, err := db.NewOrganizationQuery().SetID(currentOrgID).QueryOne()
+	orgExist, err := db.NewOrganizationQuery().SetID(currentOrgID).NotName(adminOrganizationName).CheckCount(1)
 	if err != nil {
 		return err
 	}
 
-	if organization.Name == adminOrganizationName {
+	if !orgExist {
 		return model.ErrOrganizationNotExist
 	}
 
-	user, err := db.NewUserQuery().SetID(userID).QueryOne()
+	_, err = db.NewUserQuery().SetID(userID).NotUserName(adminUserName).QueryOne()
 	if err != nil {
 		return err
-	}
-
-	if user.UserName == adminUserName {
-		return model.ErrUserNotExist
 	}
 
 	organizations, err := db.NewOrganizationsAndUsersQuery().GetOrganizationsOfUser(userID, 0, 0)

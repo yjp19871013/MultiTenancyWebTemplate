@@ -20,5 +20,5 @@ casbin:
 admin:
   username: super username
   password: super password
-  role: super role
-role_config_file_path: path
+  role: super user role name
+role_config_file_path: role define file
