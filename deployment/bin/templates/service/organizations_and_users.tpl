@@ -45,7 +45,7 @@ func DeleteUsersFromOrganization(orgID uint64, userIDs []uint64) error {
 		return model.ErrOrganizationNotExist
 	}
 
-	users, err := db.NewUserQuery().SetOrganizationID(orgID).SetIDs(userIDs).NotUserName(adminUserName).Query(0, 0)
+	users, err := db.NewUserQuery().SetIDs(userIDs).NotUserName(adminUserName).Query(0, 0)
 	if err != nil {
 		return err
 	}
