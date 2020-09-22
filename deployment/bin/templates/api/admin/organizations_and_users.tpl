@@ -126,7 +126,7 @@ func GetUsersInOrganization(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.GetUsersResponse{
 			MsgResponse: dto.FormFailureMsgResponse("获取组织包含的用户失败", errors.New("没有传递组织ID")),
 			TotalCount:  0,
-			Infos:       nil,
+			Infos:       dto.FormUserInfoWithIDBatch(nil),
 		})
 		return
 	}
@@ -136,7 +136,7 @@ func GetUsersInOrganization(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.GetUsersResponse{
 			MsgResponse: dto.FormFailureMsgResponse("获取组织包含的用户失败", err),
 			TotalCount:  0,
-			Infos:       nil,
+			Infos:       dto.FormUserInfoWithIDBatch(nil),
 		})
 		return
 	}
@@ -147,7 +147,7 @@ func GetUsersInOrganization(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.GetUsersResponse{
 			MsgResponse: dto.FormFailureMsgResponse("获取组织包含的用户失败", err),
 			TotalCount:  0,
-			Infos:       nil,
+			Infos:       dto.FormUserInfoWithIDBatch(nil),
 		})
 		return
 	}
@@ -157,7 +157,7 @@ func GetUsersInOrganization(c *gin.Context) {
 		c.JSON(http.StatusOK, dto.GetUsersResponse{
 			MsgResponse: dto.FormFailureMsgResponse("获取组织包含的用户失败", err),
 			TotalCount:  0,
-			Infos:       nil,
+			Infos:       dto.FormUserInfoWithIDBatch(nil),
 		})
 		return
 	}
