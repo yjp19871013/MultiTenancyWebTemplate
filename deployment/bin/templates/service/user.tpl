@@ -214,6 +214,10 @@ func SetUserCurrentOrganization(userID uint64, currentOrgID uint64) error {
 
 	organizations, err := db.NewOrganizationsAndUsersQuery().GetOrganizationsOfUser(userID, 0, 0)
 	if err != nil {
+	    if err == db.ErrOrganizationNotExist {
+            return model.ErrUserCurrentOrganizationNotExist
+        }
+
 		return err
 	}
 
