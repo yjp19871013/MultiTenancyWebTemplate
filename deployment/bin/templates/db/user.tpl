@@ -143,6 +143,14 @@ func (query *UserQuery) NotUserName(userName string) *UserQuery {
 	return query
 }
 
+func (query *UserQuery) OrderByDesc(columnName string) *UserQuery {
+	if !utils.IsStringEmpty(columnName) {
+		query.db = query.db.Order(columnName + " desc")
+	}
+
+	return query
+}
+
 func (query *UserQuery) Query(pageNo int, pageSize int) ([]User, error) {
 	users := make([]User, 0)
 

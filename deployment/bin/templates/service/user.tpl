@@ -180,7 +180,8 @@ func createUser(orgID uint64, orgName string, username string, password string, 
 }
 
 func GetUsers(orgID uint64, pageNo int, pageSize int) ([]model.UserInfo, int64, error) {
-	users, err := db.NewUserQuery().SetOrganizationID(orgID).NotUserName(adminUserName).Query(pageNo, pageSize)
+	users, err := db.NewUserQuery().SetOrganizationID(orgID).NotUserName(adminUserName).
+	    OrderByDesc(db.UserColumnID).Query(pageNo, pageSize)
 	if err != nil && err != db.ErrUserNotExist {
 		return nil, 0, err
 	}
