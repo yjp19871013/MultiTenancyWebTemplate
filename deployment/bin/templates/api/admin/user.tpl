@@ -37,6 +37,7 @@ func CreateUser(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto.CreateUserResponse{
 			MsgResponse: dto.FormFailureMsgResponse("创建用户失败", err),
+			ID:          0,
 		})
 		return
 	}
@@ -45,6 +46,7 @@ func CreateUser(c *gin.Context) {
     if err != nil {
         c.JSON(http.StatusOK, dto.CreateUserResponse{
             MsgResponse: dto.FormFailureMsgResponse("创建用户失败", err),
+            ID:          0,
         })
         return
     }
@@ -53,6 +55,7 @@ func CreateUser(c *gin.Context) {
     if err != nil {
         c.JSON(http.StatusOK, dto.CreateUserResponse{
             MsgResponse: dto.FormFailureMsgResponse("创建用户", err),
+            ID:          0,
         })
         return
     }
