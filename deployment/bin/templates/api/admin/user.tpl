@@ -218,7 +218,7 @@ func GetUsers(c *gin.Context) {
 // @Success 200 {object} dto.MsgResponse
 // @Failure 400 {object} dto.MsgResponse
 // @Failure 500 {object} dto.MsgResponse
-// @Router /simple/api/admin/set/user/currentOrganization [post]
+// @Router /{{ .ProjectConfig.UrlPrefix }}/api/admin/set/user/currentOrganization [post]
 func SetUserCurrentOrganization(c *gin.Context) {
 	var err error
 
