@@ -10,6 +10,8 @@ var (
     ErrUserNotExist                    = errors.New("用户不存在")
     ErrUserHasExist                    = errors.New("用户已存在")
     ErrUserPartialNotExist             = errors.New("一些用户不存在")
+    ErrUserNameOrPassword              = errors.New("用户名或密码错误")
+    ErrGetToken                        = errors.New("获取Token失败")
     ErrRoleNotExist                    = errors.New("角色不存在")
     ErrUserCurrentOrganizationNotExist = errors.New("用户不属于当前组织")
 )

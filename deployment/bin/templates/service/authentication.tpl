@@ -46,7 +46,7 @@ func GetAndUpdateAccessToken(username string, password string) (string, error) {
 	user, err := db.NewUserQuery().SetUserName(username).SetPassword(utils.Hmac(userPasswordKey, password)).QueryOne()
 	if err != nil {
 		if err == db.ErrRecordNotExist {
-			return "", model.ErrUserNotExist
+			return "", model.ErrUserNameOrPassword
 		}
 
 		return "", err
@@ -54,7 +54,7 @@ func GetAndUpdateAccessToken(username string, password string) (string, error) {
 
 	token, err := newJWT(strconv.FormatUint(user.ID, 10), userAccessTokenExpSec)
 	if err != nil {
-		return "", err
+		return "", model.ErrGetToken
 	}
 
 	userData := map[string]interface{}{
