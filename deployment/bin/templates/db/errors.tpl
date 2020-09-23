@@ -7,9 +7,7 @@ const (
 )
 
 var (
-	ErrParam                = errors.New("没有传递必要的参数")
-    ErrOrganizationHasExist = errors.New("组织已存在")
-    ErrOrganizationNotExist = errors.New("组织不存在")
-    ErrUserHasExist         = errors.New("用户已存在")
-    ErrUserNotExist         = errors.New("用户不存在")
+	ErrParam          = errors.New("没有传递必要的参数")
+    ErrRecordHasExist = errors.New("记录已存在")
+    ErrRecordNotExist = errors.New("记录不存在")
 )

@@ -45,7 +45,7 @@ func GetAndUpdateAccessToken(username string, password string) (string, error) {
 
 	user, err := db.NewUserQuery().SetUserName(username).SetPassword(utils.Hmac(userPasswordKey, password)).QueryOne()
 	if err != nil {
-		if err == db.ErrUserNotExist {
+		if err == db.ErrRecordNotExist {
 			return "", model.ErrUserNotExist
 		}
 

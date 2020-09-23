@@ -57,7 +57,7 @@ func (query *OrganizationsAndUsersQuery) GetOrganizationsOfUser(userID uint64, p
 	}
 
 	if len(organizations) == 0 {
-		return nil, ErrOrganizationNotExist
+		return nil, ErrRecordNotExist
 	}
 
 	return organizations, nil
@@ -80,7 +80,7 @@ func (query *OrganizationsAndUsersQuery) GetUsersInOrganization(orgID uint64, pa
 	}
 
 	if len(users) == 0 {
-		return nil, ErrUserNotExist
+		return nil, ErrRecordNotExist
 	}
 
 	return users, nil

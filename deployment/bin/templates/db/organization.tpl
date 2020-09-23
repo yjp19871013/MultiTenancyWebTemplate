@@ -35,7 +35,7 @@ func (organization *Organization) Create() error {
 	err = getInstance().Create(organization).Error
 	if err != nil {
 		if strings.Contains(err.Error(), dbErrHasExist) {
-			return ErrOrganizationHasExist
+			return ErrRecordHasExist
 		}
 
 		return err
@@ -101,7 +101,7 @@ func (query *OrganizationQuery) Query(pageNo int, pageSize int) ([]Organization,
 	}
 
 	if len(organizations) == 0 {
-		return nil, ErrOrganizationNotExist
+		return nil, ErrRecordNotExist
 	}
 
 	return organizations, nil
@@ -113,7 +113,7 @@ func (query *OrganizationQuery) QueryOne() (*Organization, error) {
 	err := query.db.First(organization).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, ErrOrganizationNotExist
+			return nil, ErrRecordNotExist
 		}
 
 		return nil, err

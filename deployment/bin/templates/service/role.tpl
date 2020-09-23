@@ -31,12 +31,12 @@ func initPermissions(orgInfo *model.OrganizationInfo) error {
 	confPath := config.Get{{ .ProjectConfig.ProjectName }}Config().RoleConfigFilePath
 	data, err := ioutil.ReadFile(confPath)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	err = yaml.Unmarshal(data, conf)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	for _, role := range conf.Roles {

@@ -13,14 +13,18 @@ const (
 
 func initAdminOrganization() (*model.OrganizationInfo, error) {
 	organization, err := db.NewOrganizationQuery().SetName(adminOrganizationName).QueryOne()
-	if err != nil && err != db.ErrOrganizationNotExist {
+	if err != nil && err != db.ErrRecordNotExist {
 		return nil, err
 	}
 
-	if err == db.ErrOrganizationNotExist {
+	if err == db.ErrRecordNotExist {
 		organization = &db.Organization{Name: adminOrganizationName}
 		err = organization.Create()
 		if err != nil {
+		    if err == db.ErrRecordHasExist {
+                return nil, model.ErrOrganizationHasExist
+            }
+
 			return nil, err
 		}
 	}
@@ -44,6 +48,10 @@ func CreateOrganization(name string) (*model.OrganizationInfo, error) {
 
 	err = org.Create()
 	if err != nil {
+	    if err == db.ErrRecordHasExist {
+            return nil, model.ErrOrganizationHasExist
+        }
+
 		return nil, err
 	}
 
@@ -57,7 +65,7 @@ func GetOrganizationByID(orgID uint64) (*model.OrganizationInfo, error) {
 
 	organization, err := db.NewOrganizationQuery().NotName(adminOrganizationName).SetID(orgID).QueryOne()
 	if err != nil {
-		if err == db.ErrOrganizationNotExist {
+		if err == db.ErrRecordNotExist {
 			return nil, model.ErrOrganizationNotExist
 		}
 
@@ -69,7 +77,11 @@ func GetOrganizationByID(orgID uint64) (*model.OrganizationInfo, error) {
 
 func GetOrganizations(pageNo int, pageSize int) ([]model.OrganizationInfo, int64, error) {
 	organizations, err := db.NewOrganizationQuery().NotName(adminOrganizationName).Query(pageNo, pageSize)
-	if err != nil && err != db.ErrOrganizationNotExist {
+	if err != nil {
+	    if err == db.ErrRecordNotExist {
+            return make([]model.OrganizationInfo, 0), 0, nil
+        }
+
 		return nil, 0, err
 	}
 

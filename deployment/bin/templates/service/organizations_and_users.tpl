@@ -21,11 +21,15 @@ func AddUsersToOrganization(orgID uint64, userIDs []uint64) error {
 
 	users, err := db.NewUserQuery().SetIDs(userIDs).NotUserName(adminUserName).Query(0, 0)
 	if err != nil {
+	    if err == db.ErrRecordNotExist {
+            return model.ErrUserNotExist
+        }
+
 		return err
 	}
 
 	if len(users) != len(userIDs) {
-		return model.ErrUserNotExist
+		return model.ErrUserPartialNotExist
 	}
 
 	return db.AddUsersToOrganization(orgID, users)
@@ -47,11 +51,15 @@ func DeleteUsersFromOrganization(orgID uint64, userIDs []uint64) error {
 
 	users, err := db.NewUserQuery().SetIDs(userIDs).NotUserName(adminUserName).Query(0, 0)
 	if err != nil {
+	    if err == db.ErrRecordNotExist {
+            return model.ErrUserNotExist
+        }
+
 		return err
 	}
 
 	if len(users) != len(userIDs) {
-		return model.ErrUserNotExist
+		return model.ErrUserPartialNotExist
 	}
 
 	return db.DeleteUsersFromOrganization(orgID, users)
@@ -72,7 +80,11 @@ func GetUsersInOrganization(orgID uint64, pageNo int, pageSize int) ([]model.Use
 	}
 
 	users, err := db.NewOrganizationsAndUsersQuery().NotUserName(adminUserName).GetUsersInOrganization(orgID, pageNo, pageSize)
-	if err != nil && err != db.ErrUserNotExist {
+	if err != nil {
+	    if err == db.ErrRecordNotExist {
+            return make([]model.UserInfo, 0), 0, nil
+        }
+
 		return nil, 0, err
 	}
 

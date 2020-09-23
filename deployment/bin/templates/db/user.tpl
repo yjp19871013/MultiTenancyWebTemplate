@@ -35,7 +35,7 @@ func (user *User) Create() error {
     err := getInstance().Create(user).Error
     if err != nil {
         if strings.Contains(err.Error(), dbErrHasExist) {
-            return ErrUserHasExist
+            return ErrRecordHasExist
         }
 
         return err
@@ -165,7 +165,7 @@ func (query *UserQuery) Query(pageNo int, pageSize int) ([]User, error) {
 	}
 
 	if len(users) == 0 {
-		return nil, ErrUserNotExist
+		return nil, ErrRecordNotExist
 	}
 
 	return users, nil
@@ -177,7 +177,7 @@ func (query *UserQuery) QueryOne() (*User, error) {
 	err := query.db.First(user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, ErrUserNotExist
+			return nil, ErrRecordNotExist
 		}
 
 		return nil, err

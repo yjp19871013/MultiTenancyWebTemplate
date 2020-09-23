@@ -75,7 +75,7 @@ func UpdateCommonUserPassword(orgID uint64, id uint64, password string) error {
 
 	_, err := db.NewUserQuery().SetOrganizationID(orgID).SetID(id).NotUserName(adminUserName).QueryOne()
 	if err != nil {
-		if err == db.ErrUserNotExist {
+		if err == db.ErrRecordNotExist {
 			return model.ErrUserNotExist
 		}
 
@@ -96,7 +96,7 @@ func DeleteCommonUser(orgInfo *model.OrganizationInfo, id uint64) error {
 
 	user, err := db.NewUserQuery().SetOrganizationID(orgInfo.ID).SetID(id).NotUserName(adminUserName).QueryOne()
 	if err != nil {
-		if err == db.ErrUserNotExist {
+		if err == db.ErrRecordNotExist {
 			return model.ErrUserNotExist
 		}
 
@@ -123,7 +123,7 @@ func GetUserOrgIDByToken(token string) (*model.OrganizationInfo, *model.UserInfo
 
 	user, err := db.NewUserQuery().SetToken(token).QueryOne()
 	if err != nil {
-		if err == db.ErrUserNotExist {
+		if err == db.ErrRecordNotExist {
 			return nil, nil, model.ErrUserNotExist
 		}
 
@@ -132,6 +132,10 @@ func GetUserOrgIDByToken(token string) (*model.OrganizationInfo, *model.UserInfo
 
 	organizations, err := db.NewOrganizationsAndUsersQuery().GetOrganizationsOfUser(user.ID, 0, 0)
 	if err != nil {
+	    if err == db.ErrRecordNotExist {
+            return nil, nil, model.ErrOrganizationNotExist
+        }
+
 		return nil, nil, err
 	}
 
@@ -168,6 +172,10 @@ func createUser(orgID uint64, orgName string, username string, password string, 
 
 	err = user.Create()
 	if err != nil {
+	    if err == db.ErrRecordHasExist {
+            return 0, model.ErrUserHasExist
+        }
+
 		return 0, err
 	}
 
@@ -182,7 +190,11 @@ func createUser(orgID uint64, orgName string, username string, password string, 
 func GetUsers(orgID uint64, pageNo int, pageSize int) ([]model.UserInfo, int64, error) {
 	users, err := db.NewUserQuery().SetOrganizationID(orgID).NotUserName(adminUserName).
 	    OrderByDesc(db.UserColumnID).Query(pageNo, pageSize)
-	if err != nil && err != db.ErrUserNotExist {
+	if err != nil {
+	    if err == db.ErrRecordNotExist {
+            return make([]model.UserInfo, 0), 0, nil
+        }
+
 		return nil, 0, err
 	}
 
@@ -208,14 +220,18 @@ func SetUserCurrentOrganization(userID uint64, currentOrgID uint64) error {
 		return model.ErrOrganizationNotExist
 	}
 
-	_, err = db.NewUserQuery().SetID(userID).NotUserName(adminUserName).QueryOne()
+	userExist, err := db.NewUserQuery().SetID(userID).NotUserName(adminUserName).CheckCount(1)
 	if err != nil {
 		return err
 	}
 
+	if !userExist {
+        return model.ErrUserNotExist
+    }
+
 	organizations, err := db.NewOrganizationsAndUsersQuery().GetOrganizationsOfUser(userID, 0, 0)
 	if err != nil {
-	    if err == db.ErrOrganizationNotExist {
+	    if err == db.ErrRecordNotExist {
             return model.ErrUserCurrentOrganizationNotExist
         }
 
