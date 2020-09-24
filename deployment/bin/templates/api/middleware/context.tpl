@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	contextBodyData    = "context-body-data"
-	contextUserInfoKey = "context-user-info"
-	contextOrgInfoKey  = "context-org-info"
+	contextBodyData        = "context-body-data"
+	contextUserInfoKey     = "context-user-info"
+	contextAuthOrgInfoKey  = "context-auth-org-info"
+	contextParamOrgInfoKey = "context-param-org-info"
 )
 
 func ReloadBodyData(c *gin.Context) error {
@@ -49,8 +50,22 @@ func GetContextUserInfo(c *gin.Context) (*model.UserInfo, error) {
 	return userInfo, nil
 }
 
-func GetContextOrgInfo(c *gin.Context) (*model.OrganizationInfo, error) {
-	orgInfo, exist := c.Get(contextOrgInfoKey)
+func GetContextAuthOrgInfo(c *gin.Context) (*model.OrganizationInfo, error) {
+	orgInfo, exist := c.Get(contextAuthOrgInfoKey)
+	if !exist {
+		return nil, fmt.Errorf("orgInfo不存在")
+	}
+
+	retOrgInfo, ok := orgInfo.(*model.OrganizationInfo)
+	if !ok {
+		return nil, fmt.Errorf("orgInfo转换失败")
+	}
+
+	return retOrgInfo, nil
+}
+
+func GetContextParamOrgInfo(c *gin.Context) (*model.OrganizationInfo, error) {
+	orgInfo, exist := c.Get(contextParamOrgInfoKey)
 	if !exist {
 		return nil, fmt.Errorf("orgInfo不存在")
 	}

@@ -45,7 +45,7 @@ func Authentication() gin.HandlerFunc {
 			return
 		}
 
-		c.Set(contextUserInfoKey, userInfo)
+		c.Set(contextAuthOrgInfoKey, userInfo)
 		c.Next()
 	}
 }

@@ -31,7 +31,7 @@ func CheckOrganizationIDJson() gin.HandlerFunc {
 			return
 		}
 
-		c.Set(contextOrgInfoKey, orgInfo)
+		c.Set(contextParamOrgInfoKey, orgInfo)
 		c.Next()
 	}
 }
@@ -60,7 +60,7 @@ func CheckOrganizationIDQuery() gin.HandlerFunc {
 			return
 		}
 
-		c.Set(contextOrgInfoKey, orgInfo)
+		c.Set(contextParamOrgInfoKey, orgInfo)
 		c.Next()
 	}
 }

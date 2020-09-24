@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"{{ .ProjectConfig.PackageName }}/api/dto"
+	"{{ .ProjectConfig.PackageName }}/api/middleware"
 	"{{ .ProjectConfig.PackageName }}/log"
 	"{{ .ProjectConfig.PackageName }}/service"
 	"{{ .ProjectConfig.PackageName }}/utils"
@@ -42,7 +43,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	orgInfo, err := service.GetOrganizationByID(request.OrgID)
+	orgInfo, err := middleware.GetContextParamOrgInfo(c)
     if err != nil {
         c.JSON(http.StatusOK, dto.CreateUserResponse{
             MsgResponse: dto.FormFailureMsgResponse("创建用户失败", err),
@@ -144,7 +145,7 @@ func DeleteUser(c *gin.Context) {
         return
     }
 
-    orgInfo, err := service.GetOrganizationByID(query.OrgID)
+    orgInfo, err := middleware.GetContextParamOrgInfo(c)
     if err != nil {
         dto.Response200FailJson(c, err)
         return
