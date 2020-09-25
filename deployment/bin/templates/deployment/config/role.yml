@@ -1,25 +1,25 @@
 roles:
   - name: "超级管理员"
     permissions:
-      - resource: /simple/api/challenge
+      - resource: /{{ .ProjectConfig.UrlPrefix }}/api/challenge
         action: POST
-      - resource: /simple/api/admin/*
+      - resource: /{{ .ProjectConfig.UrlPrefix }}/api/admin/*
         action: GET
-      - resource: /simple/api/admin/*
+      - resource: /{{ .ProjectConfig.UrlPrefix }}/api/admin/*
         action: POST
-      - resource: /simple/api/admin/*
+      - resource: /{{ .ProjectConfig.UrlPrefix }}/api/admin/*
         action: DELETE
-      - resource: /simple/api/admin/*
+      - resource: /{{ .ProjectConfig.UrlPrefix }}/api/admin/*
         action: PUT
   - name: "管理员"
     permissions:
-      - resource: /simple/api/challenge
+      - resource: /{{ .ProjectConfig.UrlPrefix }}/api/challenge
         action: POST
-      - resource: /simple/api/v1/*
+      - resource: /{{ .ProjectConfig.UrlPrefix }}/api/v1/*
         action: GET
-      - resource: /simple/api/v1/*
+      - resource: /{{ .ProjectConfig.UrlPrefix }}/api/v1/*
         action: POST
-      - resource: /simple/api/v1/*
+      - resource: /{{ .ProjectConfig.UrlPrefix }}/api/v1/*
         action: DELETE
-      - resource: /simple/api/v1/*
+      - resource: /{{ .ProjectConfig.UrlPrefix }}/api/v1/*
         action: PUT
