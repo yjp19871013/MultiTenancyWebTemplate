@@ -10,10 +10,10 @@ project:
 server:
   port: 10030
 database:
-  username: "username"
-  password: "password"
-  address: "localhost:3306"
-  schema: "schema"
+  username: username
+  password: password
+  address: localhost:3306
+  schema: schema
 casbin:
   config_file_path: path
   domain: domain
