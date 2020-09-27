@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"{{ .ProjectConfig.PackageName }}/api/dto"
+	"{{ .ProjectConfig.PackageName }}/api/middleware"
 	"{{ .ProjectConfig.PackageName }}/log"
 	"{{ .ProjectConfig.PackageName }}/service"
 )
@@ -21,7 +22,27 @@ import (
 // @Failure 500 {object} dto.MsgResponse
 // @Router /{{ .ProjectConfig.UrlPrefix }}/api/challenge [post]
 func Challenge(c *gin.Context) {
-	dto.Response200Json(c, "成功")
+	var err error
+
+    defer func() {
+        if err != nil {
+            log.Error("Challenge", err.Error())
+        }
+    }()
+
+    userInfo, err := middleware.GetContextUserInfo(c)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, dto.ChallengeResponse{
+            MsgResponse: dto.FormFailureMsgResponse("Token检查未通过", err),
+            Role:        userInfo.RoleName,
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, dto.ChallengeResponse{
+        MsgResponse: dto.FormSuccessMsgResponse("Token检查通过"),
+        Role:        userInfo.RoleName,
+    })
 }
 
 // GetAccessToken godoc
