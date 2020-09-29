@@ -111,12 +111,12 @@ func UpdateUserPassword(c *gin.Context) {
 // @Accept  json
 // @Produce json
 // @Param Authorization header string true "Authentication header"
-// @Param id path uint64 true "用户ID"
+// @Param userId path uint64 true "用户ID"
 // @Param orgId query uint64 true "组织ID"
 // @Success 200 {object} dto.MsgResponse
 // @Failure 400 {object} dto.MsgResponse
 // @Failure 500 {object} dto.MsgResponse
-// @Router /{{ .ProjectConfig.UrlPrefix }}/api/admin/user/{id} [delete]
+// @Router /{{ .ProjectConfig.UrlPrefix }}/api/admin/user/{userId} [delete]
 func DeleteUser(c *gin.Context) {
 	var err error
 
@@ -126,13 +126,13 @@ func DeleteUser(c *gin.Context) {
 		}
 	}()
 
-	idStr := c.Param("id")
-	if utils.IsStringEmpty(idStr) {
+	userIDStr := c.Param("userId")
+	if utils.IsStringEmpty(userIDStr) {
 		dto.Response400Json(c, errors.New("没有传递用户ID"))
 		return
 	}
 
-	id, err := strconv.ParseUint(idStr, 10, 64)
+	userID, err := strconv.ParseUint(userIDStr, 10, 64)
 	if err != nil {
 		dto.Response400Json(c, err)
 		return
@@ -151,7 +151,7 @@ func DeleteUser(c *gin.Context) {
         return
     }
 
-    err = service.DeleteCommonUser(orgInfo, id)
+    err = service.DeleteCommonUser(orgInfo, userID)
     if err != nil {
         dto.Response200FailJson(c, err)
         return

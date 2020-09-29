@@ -15,7 +15,7 @@ var (
 	}
 
 	adminDeleteRouter = map[string][]gin.HandlerFunc{
-		"/user/:id": {middleware.CheckOrganizationIDQuery(), admin.DeleteUser},
+		"/user/:userId": {middleware.CheckOrganizationIDQuery(), admin.DeleteUser},
 
 		"/delete/users/:userIds": {
             middleware.CheckOrganizationIDQuery(), admin.DeleteUsersFromOrganization,
