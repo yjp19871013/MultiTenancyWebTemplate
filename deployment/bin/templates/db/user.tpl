@@ -44,20 +44,23 @@ func (user *User) Create() error {
     return nil
 }
 
-func (user *User) Delete() error {
-	if user.ID == 0 {
+func (user *User) DeleteByOrgIDAndID() error {
+	if user.ID == 0 || user.OrganizationID == 0 {
 		return ErrParam
 	}
 
 	tx := getInstance().Begin()
 
-	err := tx.Model(user).Association("Organizations").Clear()
+	err := tx.Model(&User{}).
+	    Where(UserColumnID+" = ? AND "+UserColumnOrganizationID+" = ?", user.ID, user.OrganizationID).
+	    Association("Organizations").Clear()
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	err = tx.Delete(user).Error
+	err = tx.Where(UserColumnID+" = ? AND "+UserColumnOrganizationID+" = ?", user.ID, user.OrganizationID).
+	    Delete(user).Error
 	if err != nil {
 		tx.Rollback()
 		return err

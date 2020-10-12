@@ -108,7 +108,7 @@ func DeleteCommonUser(orgInfo *model.OrganizationInfo, id uint64) error {
 		return err
 	}
 
-	err = user.Delete()
+	err = user.DeleteByOrgIDAndID()
 	if err != nil {
 		return err
 	}
