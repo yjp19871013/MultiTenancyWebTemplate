@@ -60,7 +60,7 @@ func (user *User) DeleteByOrgIDAndID() error {
 	}
 
 	err = tx.Where(UserColumnID+" = ? AND "+UserColumnOrganizationID+" = ?", user.ID, user.OrganizationID).
-	    Delete(user).Error
+	    Delete(&User{}).Error
 	if err != nil {
 		tx.Rollback()
 		return err
