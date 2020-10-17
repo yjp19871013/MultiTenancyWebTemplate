@@ -13,5 +13,4 @@ type GetAccessTokenResponse struct {
 type ChallengeResponse struct {
 	MsgResponse
 	Role        string `json:"role" binding:"required"`
-	NurseName   string `json:"nurseName" binding:"required"`
 }
