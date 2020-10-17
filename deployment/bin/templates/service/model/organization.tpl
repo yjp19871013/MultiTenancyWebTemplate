@@ -14,8 +14,9 @@ func TransferOrganizationToOrganizationInfo(org *db.Organization) *OrganizationI
 	}
 
 	return &OrganizationInfo{
-		ID:   org.ID,
-		Name: org.Name,
+		ID:                 org.ID,
+        Name:               org.Name,
+        ResourceIdentifier: org.ResourceIdentifier,
 	}
 }
 
