@@ -25,7 +25,7 @@ func Authentication() gin.HandlerFunc {
             return
         }
 
-		pass, err := service.Authentication(orgInfo.Name, userInfo.ID, c.Request.RequestURI, c.Request.Method, token)
+		pass, err := service.Authentication(orgInfo.Name, userInfo.ID, c.Request.URL.Path, c.Request.Method, token)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, dto.FormFailureMsgResponse("用户鉴权", err))
 			c.Abort()
