@@ -27,45 +27,45 @@ func initAdmin(orgInfo *model.OrganizationInfo) error {
     }
 
 	exist, err := db.NewUserQuery().SetOrganizationID(orgInfo.ID).SetUserName(adminUserName).CheckCount(1)
-	if err != nil {
-		return err
-	}
-
-	if exist {
-		return nil
-	}
-
-	userID, err := CreateSuperAdminUser(orgInfo, adminUserName, adminUserPassword)
     if err != nil {
         return err
     }
 
-    err = db.AddUsersToOrganization(orgInfo.ID, []db.User{db.User{ID: userID}})
+    if exist {
+        return nil
+    }
+
+    userInfo, err := CreateSuperAdminUser(orgInfo, adminUserName, adminUserPassword)
     if err != nil {
         return err
     }
 
-	return nil
+    err = db.AddUsersToOrganization(orgInfo.ID, []db.User{db.User{ID: userInfo.ID}})
+    if err != nil {
+        return err
+    }
+
+    return nil
 }
 
-func CreateSuperAdminUser(orgInfo *model.OrganizationInfo, username string, password string) (uint64, error) {
+func CreateSuperAdminUser(orgInfo *model.OrganizationInfo, username string, password string) (*model.UserInfo, error) {
 	if orgInfo == nil || utils.IsStringEmpty(username) || utils.IsStringEmpty(password) {
-		return 0, model.ErrParam
+		return nil, model.ErrParam
 	}
 
-	return createUser(orgInfo.ID, orgInfo.Name, username, password, adminUserRoleName)
+	return createUser(orgInfo, username, password, adminUserRoleName)
 }
 
-func CreateCommonUser(orgInfo *model.OrganizationInfo, username string, password string, roleName string) (uint64, error) {
+func CreateCommonUser(orgInfo *model.OrganizationInfo, username string, password string, roleName string) (*model.UserInfo, error) {
 	if orgInfo == nil || utils.IsStringEmpty(username) || utils.IsStringEmpty(password) || utils.IsStringEmpty(roleName) {
-		return 0, model.ErrParam
+		return nil, model.ErrParam
 	}
 
 	if roleName == adminUserRoleName {
-		return 0, model.ErrRoleNotExist
+		return nil, model.ErrRoleNotExist
 	}
 
-	return createUser(orgInfo.ID, orgInfo.Name, username, password, roleName)
+	return createUser(orgInfo, username, password, roleName)
 }
 
 func UpdateCommonUserPassword(orgID uint64, id uint64, password string) error {
@@ -109,9 +109,9 @@ func DeleteCommonUser(orgInfo *model.OrganizationInfo, id uint64) error {
 	}
 
 	err = user.DeleteByOrgIDAndID()
-	if err != nil {
-		return err
-	}
+    if err != nil {
+        return err
+    }
 
 	return nil
 }
@@ -133,8 +133,8 @@ func GetUserOrgIDByToken(token string) (*model.OrganizationInfo, *model.UserInfo
 	organizations, err := db.NewOrganizationsAndUsersQuery().GetOrganizationsOfUser(user.ID, 0, 0)
 	if err != nil {
 	    if err == db.ErrRecordNotExist {
-            return nil, nil, model.ErrOrganizationNotExist
-        }
+	        return nil, nil, model.ErrOrganizationNotExist
+	    }
 
 		return nil, nil, err
 	}
@@ -153,52 +153,52 @@ func GetUserOrgIDByToken(token string) (*model.OrganizationInfo, *model.UserInfo
 	return model.TransferOrganizationToOrganizationInfo(findOrganization), model.TransferUserToUserInfo(user), nil
 }
 
-func createUser(orgID uint64, orgName string, username string, password string, roleName string) (uint64, error) {
+func createUser(orgInfo *model.OrganizationInfo, username string, password string, roleName string) (*model.UserInfo, error) {
 	roleExist, err := casbin.HasRole(roleName)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	if !roleExist {
-		return 0, model.ErrRoleNotExist
+		return nil, model.ErrRoleNotExist
 	}
 
 	user := &db.User{
 		UserName:       username,
 		Password:       utils.Hmac(userPasswordKey, password),
 		Role:           roleName,
-		OrganizationID: orgID,
+		OrganizationID: orgInfo.ID,
 	}
 
 	err = user.Create()
 	if err != nil {
 	    if err == db.ErrRecordHasExist {
-            return 0, model.ErrUserHasExist
+            return nil, model.ErrUserHasExist
         }
 
-		return 0, err
+		return nil, err
 	}
 
-	err = casbin.AddRoleForUser(orgName, user.ID, user.Role)
+	err = casbin.AddRoleForUser(orgInfo.Name, user.ID, user.Role)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return user.ID, err
+	return model.TransferUserToUserInfo(user), err
 }
 
-func GetUsers(orgID uint64, pageNo int, pageSize int) ([]model.UserInfo, int64, error) {
-	users, err := db.NewUserQuery().SetOrganizationID(orgID).NotUserName(adminUserName).
+func GetUsers(orgID uint64, userID uint64, pageNo int, pageSize int) ([]model.UserInfo, int64, error) {
+	users, err := db.NewUserQuery().SetOrganizationID(orgID).SetID(userID).NotUserName(adminUserName).
 	    OrderByDesc(db.UserColumnID).Query(pageNo, pageSize)
 	if err != nil {
 	    if err == db.ErrRecordNotExist {
-            return make([]model.UserInfo, 0), 0, nil
-        }
+	        return make([]model.UserInfo, 0), 0, nil
+	    }
 
 		return nil, 0, err
 	}
 
-	totalCount, err := db.NewUserQuery().SetOrganizationID(orgID).NotUserName(adminUserName).Count()
+	totalCount, err := db.NewUserQuery().SetOrganizationID(orgID).SetID(userID).NotUserName(adminUserName).Count()
 	if err != nil {
 		return nil, 0, err
 	}
@@ -226,8 +226,8 @@ func SetUserCurrentOrganization(userID uint64, currentOrgID uint64) error {
 	}
 
 	if !userExist {
-        return model.ErrUserNotExist
-    }
+	    return model.ErrUserNotExist
+	}
 
 	organizations, err := db.NewOrganizationsAndUsersQuery().GetOrganizationsOfUser(userID, 0, 0)
 	if err != nil {

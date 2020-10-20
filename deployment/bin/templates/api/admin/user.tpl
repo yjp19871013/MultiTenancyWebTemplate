@@ -38,7 +38,7 @@ func CreateUser(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto.CreateUserResponse{
 			MsgResponse: dto.FormFailureMsgResponse("创建用户失败", err),
-			ID:          0,
+			UserInfo:    *dto.FormUserInfoWithID(nil),
 		})
 		return
 	}
@@ -47,23 +47,23 @@ func CreateUser(c *gin.Context) {
     if err != nil {
         c.JSON(http.StatusOK, dto.CreateUserResponse{
             MsgResponse: dto.FormFailureMsgResponse("创建用户失败", err),
-            ID:          0,
+            UserInfo:    *dto.FormUserInfoWithID(nil),
         })
         return
     }
 
-    userId, err := service.CreateCommonUser(orgInfo, request.Username, request.Password, request.RoleName)
+    userInfo, err := service.CreateCommonUser(orgInfo, request.Username, request.Password, request.RoleName)
     if err != nil {
         c.JSON(http.StatusOK, dto.CreateUserResponse{
             MsgResponse: dto.FormFailureMsgResponse("创建用户", err),
-            ID:          0,
+            UserInfo:    *dto.FormUserInfoWithID(nil),
         })
         return
     }
 
 	c.JSON(http.StatusOK, dto.CreateUserResponse{
 		MsgResponse: dto.FormSuccessMsgResponse("创建用户成功"),
-		ID:          userId,
+		UserInfo:    *dto.FormUserInfoWithID(userInfo),
 	})
 }
 
@@ -168,6 +168,7 @@ func DeleteUser(c *gin.Context) {
 // @Produce json
 // @Param Authorization header string true "Authentication header"
 // @Param orgId query uint64 false "组织ID"
+// @Param userId query uint64 false "用户ID"
 // @Param pageNo query int false "页码"
 // @Param pageSize query int false "页大小"
 // @Success 200 {object} dto.GetUsersResponse
@@ -194,7 +195,7 @@ func GetUsers(c *gin.Context) {
 		return
 	}
 
-	userInfos, totalCount, err := service.GetUsers(query.OrgID, query.PageNo, query.PageSize)
+	userInfos, totalCount, err := service.GetUsers(query.OrgID, query.UserID, query.PageNo, query.PageSize)
 	if err != nil {
 		c.JSON(http.StatusOK, dto.GetUsersResponse{
 			MsgResponse: dto.FormFailureMsgResponse("获取用户失败", err),

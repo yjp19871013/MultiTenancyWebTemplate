@@ -11,7 +11,8 @@ type (
     }
 
 	AdminGetUsersInOrganizationQuery struct {
-		PageNo   int   `form:"pageNo"`
-		PageSize int   `form:"pageSize"`
+	    UserID   uint64 `form:"userId"`
+		PageNo   int    `form:"pageNo"`
+		PageSize int    `form:"pageSize"`
 	}
 )

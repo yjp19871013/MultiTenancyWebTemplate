@@ -106,6 +106,7 @@ func DeleteUsersFromOrganization(c *gin.Context) {
 // @Produce json
 // @Param Authorization header string true "Authentication header"
 // @Param orgId path uint64 true "组织ID"
+// @Param userId path uint64 true "用户ID"
 // @Param pageNo query uint false "页码"
 // @Param pageSize query uint false "页大小"
 // @Success 200 {object} dto.GetUsersResponse
@@ -152,7 +153,7 @@ func GetUsersInOrganization(c *gin.Context) {
 		return
 	}
 
-	users, totalCount, err := service.GetUsersInOrganization(orgID, query.PageNo, query.PageSize)
+	users, totalCount, err := service.GetUsersInOrganization(orgID, query.UserID, query.PageNo, query.PageSize)
 	if err != nil {
 		c.JSON(http.StatusOK, dto.GetUsersResponse{
 			MsgResponse: dto.FormFailureMsgResponse("获取组织包含的用户失败", err),

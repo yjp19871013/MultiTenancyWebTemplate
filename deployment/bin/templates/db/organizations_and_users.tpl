@@ -5,6 +5,10 @@ import (
     "{{ .ProjectConfig.PackageName }}/utils"
 )
 
+const (
+	OrganizationsAndUsersColumnUserID = "organizations_and_users.user_id"
+)
+
 func AddUsersToOrganization(orgID uint64, users []User) error {
 	if orgID == 0 || users == nil || len(users) == 0 {
 		return ErrParam
@@ -28,6 +32,14 @@ type OrganizationsAndUsersQuery struct {
 func NewOrganizationsAndUsersQuery() *OrganizationsAndUsersQuery {
 	query := new(OrganizationsAndUsersQuery)
 	query.db = getInstance()
+
+	return query
+}
+
+func (query *OrganizationsAndUsersQuery) SetUserID(userID uint64) *OrganizationsAndUsersQuery {
+	if userID != 0 {
+		query.db = query.db.Where(OrganizationsAndUsersColumnUserID+" = ?", userID)
+	}
 
 	return query
 }

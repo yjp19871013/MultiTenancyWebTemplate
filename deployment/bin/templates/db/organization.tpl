@@ -44,6 +44,30 @@ func (organization *Organization) Create() error {
 	return nil
 }
 
+func (organization *Organization) DeleteByID() error {
+	if organization.ID == 0 {
+		return ErrParam
+	}
+
+	tx := getInstance().Begin()
+
+	err := tx.Model(organization).Association("Users").Clear()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Delete(organization).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+
+	return nil
+}
+
 type OrganizationQuery struct {
 	db *gorm.DB
 }

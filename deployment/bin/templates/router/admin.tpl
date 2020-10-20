@@ -1,37 +1,38 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
-	"{{ .ProjectConfig.PackageName }}/api/admin"
 	"{{ .ProjectConfig.PackageName }}/api/middleware"
+	"{{ .ProjectConfig.PackageName }}/api/admin"
+	"github.com/gin-gonic/gin"
 )
 
 var (
 	adminPostRouter = map[string][]gin.HandlerFunc{
-		"/organization":                 {admin.CreateOrganization},
+	    "/organization":                 {admin.CreateOrganization},
         "/user":                         {middleware.CheckOrganizationIDJson(), admin.CreateUser},
         "/add/users/organization":       {middleware.CheckOrganizationIDJson(), admin.AddUsersToOrganization},
         "/set/user/currentOrganization": {admin.SetUserCurrentOrganization},
 	}
 
 	adminDeleteRouter = map[string][]gin.HandlerFunc{
-		"/user/:userId": {middleware.CheckOrganizationIDQuery(), admin.DeleteUser},
+	    "/organization/:orgId": {admin.DeleteOrganization},
+	    "/user/:userId":        {middleware.CheckOrganizationIDQuery(), admin.DeleteUser},
 
-		"/delete/users/:userIds": {
+	    "/delete/users/:userIds": {
             middleware.CheckOrganizationIDQuery(), admin.DeleteUsersFromOrganization,
         },
 	}
 
 	adminPutRouter = map[string][]gin.HandlerFunc{
-		"/user": {middleware.CheckOrganizationIDJson(), admin.UpdateUserPassword},
+	    "/user": {middleware.CheckOrganizationIDJson(), admin.UpdateUserPassword},
 	}
 
 	adminGetRouter = map[string][]gin.HandlerFunc{
 	    "/organizations": {admin.GetOrganizations},
-		"/roles":         {admin.GetRoles},
-		"/users":         {admin.GetUsers},
+	    "/roles":         {admin.GetRoles},
+	    "/users":         {admin.GetUsers},
 
-		"/organization/:orgId/users": {admin.GetUsersInOrganization},
+	    "/organization/:orgId/users": {admin.GetUsersInOrganization},
 	}
 )
 

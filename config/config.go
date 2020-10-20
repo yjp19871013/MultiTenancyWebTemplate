@@ -31,13 +31,13 @@ type databaseConfig struct {
 
 type casbinConfig struct {
 	ConfigFilePath string `yaml:"config_file_path"`
-	Domain         string `yaml:"domain"`
 }
 
 type adminUserConfig struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 	Role     string `yaml:"role"`
+	Domain   string `yaml:"domain"`
 }
 
 type TemplateConfig struct {

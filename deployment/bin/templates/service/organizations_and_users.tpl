@@ -22,8 +22,8 @@ func AddUsersToOrganization(orgID uint64, userIDs []uint64) error {
 	users, err := db.NewUserQuery().SetIDs(userIDs).NotUserName(adminUserName).Query(0, 0)
 	if err != nil {
 	    if err == db.ErrRecordNotExist {
-            return model.ErrUserNotExist
-        }
+	        return model.ErrUserNotExist
+	    }
 
 		return err
 	}
@@ -52,8 +52,8 @@ func DeleteUsersFromOrganization(orgID uint64, userIDs []uint64) error {
 	users, err := db.NewUserQuery().SetIDs(userIDs).NotUserName(adminUserName).Query(0, 0)
 	if err != nil {
 	    if err == db.ErrRecordNotExist {
-            return model.ErrUserNotExist
-        }
+	        return model.ErrUserNotExist
+	    }
 
 		return err
 	}
@@ -65,7 +65,7 @@ func DeleteUsersFromOrganization(orgID uint64, userIDs []uint64) error {
 	return db.DeleteUsersFromOrganization(orgID, users)
 }
 
-func GetUsersInOrganization(orgID uint64, pageNo int, pageSize int) ([]model.UserInfo, int64, error) {
+func GetUsersInOrganization(orgID uint64, userID uint64, pageNo int, pageSize int) ([]model.UserInfo, int64, error) {
 	if orgID == 0 {
 		return nil, 0, model.ErrParam
 	}
@@ -79,16 +79,18 @@ func GetUsersInOrganization(orgID uint64, pageNo int, pageSize int) ([]model.Use
 		return nil, 0, model.ErrOrganizationNotExist
 	}
 
-	users, err := db.NewOrganizationsAndUsersQuery().NotUserName(adminUserName).GetUsersInOrganization(orgID, pageNo, pageSize)
+	users, err := db.NewOrganizationsAndUsersQuery().SetUserID(userID).NotUserName(adminUserName).
+	    GetUsersInOrganization(orgID, pageNo, pageSize)
 	if err != nil {
 	    if err == db.ErrRecordNotExist {
-            return make([]model.UserInfo, 0), 0, nil
-        }
+	        return make([]model.UserInfo, 0), 0, nil
+	    }
 
 		return nil, 0, err
 	}
 
-	totalCount, err := db.NewOrganizationsAndUsersQuery().NotUserName(adminUserName).CountUsersInOrganization(orgID)
+	totalCount, err := db.NewOrganizationsAndUsersQuery().SetUserID(userID).
+	    NotUserName(adminUserName).CountUsersInOrganization(orgID)
 	if err != nil {
 		return nil, 0, err
 	}

@@ -4,8 +4,11 @@ import (
 	"{{ .ProjectConfig.PackageName }}/api/dto"
 	"{{ .ProjectConfig.PackageName }}/service"
 	"{{ .ProjectConfig.PackageName }}/log"
-	"github.com/gin-gonic/gin"
-	"net/http"
+	"{{ .ProjectConfig.PackageName }}/utils"
+	"errors"
+    "github.com/gin-gonic/gin"
+    "net/http"
+    "strconv"
 )
 
 // CreateOrganization godoc
@@ -55,6 +58,48 @@ func CreateOrganization(c *gin.Context) {
 	})
 }
 
+// DeleteOrganization godoc
+// @Summary 删除组织
+// @Description 删除用户
+// @Tags (admin)组织管理
+// @Accept  json
+// @Produce json
+// @Param Authorization header string true "Authentication header"
+// @Param orgId query uint64 true "组织ID"
+// @Success 200 {object} dto.MsgResponse
+// @Failure 400 {object} dto.MsgResponse
+// @Failure 500 {object} dto.MsgResponse
+// @Router /{{ .ProjectConfig.UrlPrefix }}/api/admin/organization/{orgId} [delete]
+func DeleteOrganization(c *gin.Context) {
+	var err error
+
+	defer func() {
+		if err != nil {
+			log.Error("DeleteOrganization", err.Error())
+		}
+	}()
+
+	orgIDStr := c.Param("orgId")
+	if utils.IsStringEmpty(orgIDStr) {
+		dto.Response400Json(c, errors.New("没有传递用户ID"))
+		return
+	}
+
+	orgID, err := strconv.ParseUint(orgIDStr, 10, 64)
+	if err != nil {
+		dto.Response400Json(c, err)
+		return
+	}
+
+	err = service.DeleteOrganization(orgID)
+	if err != nil {
+		dto.Response200FailJson(c, err)
+		return
+	}
+
+	dto.Response200Json(c, "删除组织成功")
+}
+
 // GetOrganizations godoc
 // @Summary 获取组织
 // @Description 获取组织
@@ -62,6 +107,7 @@ func CreateOrganization(c *gin.Context) {
 // @Accept  json
 // @Produce json
 // @Param Authorization header string true "Authentication header"
+// @Param id query uint64 false "组织ID"
 // @Param pageNo query string false "页码"
 // @Param pageSize query string false "页大小"
 // @Success 200 {object} dto.GetOrganizationsResponse
@@ -88,7 +134,7 @@ func GetOrganizations(c *gin.Context) {
 		return
 	}
 
-	orgInfos, totalCount, err := service.GetOrganizations(query.PageNo, query.PageSize)
+	orgInfos, totalCount, err := service.GetOrganizations(query.ID, query.PageNo, query.PageSize)
 	if err != nil {
 		c.JSON(http.StatusOK, dto.GetOrganizationsResponse{
 			MsgResponse:   dto.FormFailureMsgResponse("获取组织失败", err),
