@@ -126,15 +126,13 @@ func (toolKit *ToolKit) Request(url string, method string) *ToolKit {
 }
 
 func (toolKit *ToolKit) GetAccessToken(username string, password string, retToken *string) *ToolKit {
-	getAccessTokenRequest := &dto.GetAccessTokenRequest{
-		Username: username,
-		Password: password,
-	}
-
 	getAccessTokenResponse := new(dto.GetAccessTokenResponse)
 
 	NewToolKit(toolKit.t).SetHeader("Content-Type", "application/json").
-		SetJsonBody(getAccessTokenRequest).
+		SetJsonBody(&dto.GetAccessTokenRequest{
+			Username: username,
+			Password: password,
+		}).
 		SetJsonResponse(getAccessTokenResponse).
 		Request("/{{ .ProjectConfig.UrlPrefix }}/api/getAccessToken", http.MethodPost).
 		AssertStatusCode(http.StatusOK).
@@ -158,25 +156,23 @@ func (toolKit *ToolKit) CreateOrganization(orgInfo *dto.OrganizationInfoWithID) 
 
 	orgName := "测试" + strings.Split(uuid, "-")[0]
 
-	createOrganizationRequest := &dto.CreateOrganizationRequest{
-		OrganizationInfo: dto.OrganizationInfo{Name: orgName},
-	}
-
 	createOrganizationResponse := new(dto.CreateOrganizationResponse)
+	getOrganizationsResponse := new(dto.GetOrganizationsResponse)
+
 	NewToolKit(toolKit.t).SetToken(toolKit.token).
 		SetHeader("Content-Type", "application/json").
-		SetJsonBody(createOrganizationRequest).
+		SetJsonBody(&dto.CreateOrganizationRequest{
+			OrganizationInfo: dto.OrganizationInfo{Name: orgName},
+		}).
 		SetJsonResponse(createOrganizationResponse).
 		Request("/{{ .ProjectConfig.UrlPrefix }}/api/admin/organization", http.MethodPost).
 		AssertStatusCode(http.StatusOK).
 		AssertEqual(true, createOrganizationResponse.Success, createOrganizationResponse.Msg).
 		AssertNotEqual(0, createOrganizationResponse.ID).
-		AssertEqual(orgName, createOrganizationResponse.Name)
-
-	getOrganizationsResponse := new(dto.GetOrganizationsResponse)
-	NewToolKit(toolKit.t).SetToken(toolKit.token).
+		AssertEqual(orgName, createOrganizationResponse.Name).
+		SetToken(toolKit.token).
 		SetHeader("Content-Type", "application/json").
-		SetQueryParams("id", strconv.FormatUint(createOrganizationResponse.ID, 10)).
+		SetQueryParams("orgId", strconv.FormatUint(createOrganizationResponse.ID, 10)).
 		SetQueryParams("pageNo", "1").
 		SetQueryParams("pageSize", "1").
 		SetJsonResponse(getOrganizationsResponse).
@@ -221,29 +217,29 @@ func (toolKit *ToolKit) CreateUser(password string, role string, userInfo *dto.U
 
 	userName := "测试用户" + strings.Split(uuid, "-")[0]
 
-	createUserRequest := &dto.AdminCreateUserRequest{
-		OrgID:    toolKit.orgInfo.ID,
-		Password: password,
-		UserInfo: dto.UserInfo{
-			Username: userName,
-			RoleName: role,
-		},
-	}
-
 	createUserResponse := new(dto.CreateUserResponse)
+	getUsersResponse := new(dto.GetUsersResponse)
+	addUsersToOrganizationResponse := new(dto.MsgResponse)
+	getUsersInOrganizationResponse := new(dto.GetUsersResponse)
+
 	NewToolKit(toolKit.t).SetToken(toolKit.token).
 		SetHeader("Content-Type", "application/json").
-		SetJsonBody(createUserRequest).
+		SetJsonBody(&dto.AdminCreateUserRequest{
+			OrgID:    toolKit.orgInfo.ID,
+			Password: password,
+			UserInfo: dto.UserInfo{
+				Username: userName,
+				RoleName: role,
+			},
+		}).
 		SetJsonResponse(createUserResponse).
 		Request("/{{ .ProjectConfig.UrlPrefix }}/api/admin/user", http.MethodPost).
 		AssertStatusCode(http.StatusOK).
 		AssertEqual(true, createUserResponse.Success, createUserResponse.Msg).
 		AssertNotEqual(0, createUserResponse.UserInfo.ID).
 		AssertEqual(userName, createUserResponse.UserInfo.Username).
-		AssertEqual(role, createUserResponse.UserInfo.RoleName)
-
-	getUsersResponse := new(dto.GetUsersResponse)
-	NewToolKit(toolKit.t).SetToken(toolKit.token).
+		AssertEqual(role, createUserResponse.UserInfo.RoleName).
+		SetToken(toolKit.token).
 		SetHeader("Content-Type", "application/json").
 		SetQueryParams("orgId", strconv.FormatUint(toolKit.orgInfo.ID, 10)).
 		SetQueryParams("userId", strconv.FormatUint(createUserResponse.UserInfo.ID, 10)).
@@ -256,24 +252,18 @@ func (toolKit *ToolKit) CreateUser(password string, role string, userInfo *dto.U
 		AssertEqual(int64(1), getUsersResponse.TotalCount).
 		AssertEqual(createUserResponse.UserInfo.ID, getUsersResponse.Infos[0].ID).
 		AssertEqual(createUserResponse.UserInfo.Username, getUsersResponse.Infos[0].Username).
-		AssertEqual(createUserResponse.UserInfo.RoleName, getUsersResponse.Infos[0].RoleName)
-
-	addUsersToOrganizationRequest := &dto.AdminAddUsersToOrganizationRequest{
-		OrgID:   toolKit.orgInfo.ID,
-		UserIDs: []uint64{createUserResponse.UserInfo.ID},
-	}
-
-	addUsersToOrganizationResponse := new(dto.MsgResponse)
-	NewToolKit(toolKit.t).SetToken(toolKit.token).
+		AssertEqual(createUserResponse.UserInfo.RoleName, getUsersResponse.Infos[0].RoleName).
+		SetToken(toolKit.token).
 		SetHeader("Content-Type", "application/json").
-		SetJsonBody(addUsersToOrganizationRequest).
+		SetJsonBody(&dto.AdminAddUsersToOrganizationRequest{
+			OrgID:   toolKit.orgInfo.ID,
+			UserIDs: []uint64{createUserResponse.UserInfo.ID},
+		}).
 		SetJsonResponse(addUsersToOrganizationResponse).
 		Request("/{{ .ProjectConfig.UrlPrefix }}/api/admin/add/users/organization", http.MethodPost).
 		AssertStatusCode(http.StatusOK).
-		AssertEqual(true, addUsersToOrganizationResponse.Success, addUsersToOrganizationResponse.Msg)
-
-	getUsersInOrganizationResponse := new(dto.GetUsersResponse)
-	NewToolKit(toolKit.t).SetToken(toolKit.token).
+		AssertEqual(true, addUsersToOrganizationResponse.Success, addUsersToOrganizationResponse.Msg).
+		SetToken(toolKit.token).
 		SetHeader("Content-Type", "application/json").
 		SetQueryParams("userId", strconv.FormatUint(createUserResponse.UserInfo.ID, 10)).
 		SetQueryParams("pageNo", "1").
@@ -301,16 +291,16 @@ func (toolKit *ToolKit) CreateUser(password string, role string, userInfo *dto.U
 
 func (toolKit *ToolKit) DeleteUser() *ToolKit {
 	deleteUsersFromOrganizationResponse := new(dto.MsgResponse)
+	deleteUserResponse := new(dto.MsgResponse)
+
 	NewToolKit(toolKit.t).SetToken(toolKit.token).
 		SetHeader("Content-Type", "application/json").
 		SetQueryParams("orgId", strconv.FormatUint(toolKit.orgInfo.ID, 10)).
 		SetJsonResponse(deleteUsersFromOrganizationResponse).
 		Request("/{{ .ProjectConfig.UrlPrefix }}/api/admin/delete/users/"+strconv.FormatUint(toolKit.userInfo.ID, 10), http.MethodDelete).
 		AssertStatusCode(http.StatusOK).
-		AssertEqual(true, deleteUsersFromOrganizationResponse.Success, deleteUsersFromOrganizationResponse.Msg)
-
-	deleteUserResponse := new(dto.MsgResponse)
-	NewToolKit(toolKit.t).SetToken(toolKit.token).
+		AssertEqual(true, deleteUsersFromOrganizationResponse.Success, deleteUsersFromOrganizationResponse.Msg).
+		SetToken(toolKit.token).
 		SetHeader("Content-Type", "application/json").
 		SetQueryParams("orgId", strconv.FormatUint(toolKit.orgInfo.ID, 10)).
 		SetJsonResponse(deleteUserResponse).

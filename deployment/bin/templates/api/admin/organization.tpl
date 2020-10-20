@@ -107,7 +107,7 @@ func DeleteOrganization(c *gin.Context) {
 // @Accept  json
 // @Produce json
 // @Param Authorization header string true "Authentication header"
-// @Param id query uint64 false "组织ID"
+// @Param orgId query uint64 false "组织ID"
 // @Param pageNo query string false "页码"
 // @Param pageSize query string false "页大小"
 // @Success 200 {object} dto.GetOrganizationsResponse
@@ -134,7 +134,7 @@ func GetOrganizations(c *gin.Context) {
 		return
 	}
 
-	orgInfos, totalCount, err := service.GetOrganizations(query.ID, query.PageNo, query.PageSize)
+	orgInfos, totalCount, err := service.GetOrganizations(query.OrgID, query.PageNo, query.PageSize)
 	if err != nil {
 		c.JSON(http.StatusOK, dto.GetOrganizationsResponse{
 			MsgResponse:   dto.FormFailureMsgResponse("获取组织失败", err),

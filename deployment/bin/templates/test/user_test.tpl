@@ -41,14 +41,14 @@ func TestGetUsersPaging(t *testing.T) {
 }
 
 func TestUpdateUserPassword(t *testing.T) {
+	var newToken string
 	orgInfo := new(dto.OrganizationInfoWithID)
 	userInfo := new(dto.UserInfoWithID)
 	updateUserPasswordResponse := new(dto.MsgResponse)
 
 	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword, nil).
 		CreateOrganization(orgInfo).
-		CreateUser(testUserPassword, adminRoleName, userInfo).
-		SetHeader("Content-Type", "application/json").
+		CreateUser(testUserPassword, adminRoleName, userInfo).SetHeader("Content-Type", "application/json").
 		SetJsonBody(&dto.AdminUpdateUserPasswordRequest{
 			OrgID:    orgInfo.ID,
 			ID:       userInfo.ID,
@@ -57,8 +57,10 @@ func TestUpdateUserPassword(t *testing.T) {
 		SetJsonResponse(updateUserPasswordResponse).
 		Request("/{{ .ProjectConfig.UrlPrefix }}/api/admin/user", http.MethodPut).
 		AssertStatusCode(http.StatusOK).
-		AssertEqual(true, updateUserPasswordResponse.Success, updateUserPasswordResponse.Msg)
-
-	var token string
-	NewToolKit(t).GetAccessToken(userInfo.Username, "456", &token).AssertNotEmpty(token)
+		AssertEqual(true, updateUserPasswordResponse.Success, updateUserPasswordResponse.Msg).
+		GetAccessToken(userInfo.Username, "456", &newToken).
+		AssertNotEmpty(newToken).
+		GetAccessToken(superAdminUsername, superAdminPassword, nil).
+		DeleteUser().
+		DeleteOrganization()
 }

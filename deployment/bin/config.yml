@@ -16,9 +16,9 @@ database:
   schema: schema
 casbin:
   config_file_path: path
-  domain: domain
 admin:
   username: super username
   password: super password
   role: super user role name
+  domain: domain
 role_config_file_path: role define file

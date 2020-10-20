@@ -12,7 +12,7 @@ type CreateOrganizationResponse struct {
 }
 
 type GetOrganizationsQuery struct {
-    ID       uint64 `form:"id"`
+    OrgID    uint64 `form:"orgId"`
 	PageNo   int `form:"pageNo"`
 	PageSize int `form:"pageSize"`
 }
