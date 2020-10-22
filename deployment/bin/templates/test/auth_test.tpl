@@ -16,3 +16,26 @@ func TestChallenge(t *testing.T) {
 		AssertEqual(true, challengeResponse.Success, challengeResponse.Msg).
 		AssertEqual("超级管理员", challengeResponse.Role)
 }
+
+func (toolKit *ToolKit) GetAccessToken(username string, password string, retToken *string) *ToolKit {
+	getAccessTokenResponse := new(dto.GetAccessTokenResponse)
+
+	NewToolKit(toolKit.t).SetHeader("Content-Type", "application/json").
+		SetJsonBody(&dto.GetAccessTokenRequest{
+			Username: username,
+			Password: password,
+		}).
+		SetJsonResponse(getAccessTokenResponse).
+		Request("/{{ .ProjectConfig.UrlPrefix }}/api/getAccessToken", http.MethodPost).
+		AssertStatusCode(http.StatusOK).
+		AssertEqual(true, getAccessTokenResponse.Success, getAccessTokenResponse.Msg).
+		AssertNotEmpty(getAccessTokenResponse.AccessToken)
+
+	toolKit.token = getAccessTokenResponse.AccessToken
+
+	if retToken != nil {
+		*retToken = getAccessTokenResponse.AccessToken
+	}
+
+	return toolKit
+}
