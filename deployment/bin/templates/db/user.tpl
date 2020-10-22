@@ -52,7 +52,7 @@ func (user *User) DeleteByOrgIDAndID() error {
 	tx := getInstance().Begin()
 
 	err := tx.Model(user).
-	    Where(UserColumnID+" = ? AND "+UserColumnOrganizationID+" = ?", user.ID, user.OrganizationID).
+	    Where(UserColumnOrganizationID+" = ?", user.OrganizationID).
 	    Association("Organizations").Clear()
 	if err != nil {
 		tx.Rollback()
