@@ -105,7 +105,7 @@ func (toolKit *ToolKit) Request(url string, method string) *ToolKit {
 	toolKit.responseRecorder = httptest.NewRecorder()
 	r.ServeHTTP(toolKit.responseRecorder, request)
 
-	if toolKit.jsonResponse != nil {
+	if toolKit.responseRecorder.Code == http.StatusOK && toolKit.jsonResponse != nil {
 		responseBody, err := ioutil.ReadAll(toolKit.responseRecorder.Body)
 		if err != nil {
 			toolKit.t.Fatal("读取响应Body失败")
