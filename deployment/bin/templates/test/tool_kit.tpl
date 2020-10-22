@@ -85,6 +85,8 @@ func (toolKit *ToolKit) Request(url string, method string) *ToolKit {
 		}
 
 		url = url[:len(url)-1]
+
+		toolKit.queryParams = make(map[string]string)
 	}
 
 	request, err := http.NewRequest(method, url, toolKit.body)
@@ -96,6 +98,8 @@ func (toolKit *ToolKit) Request(url string, method string) *ToolKit {
 		for key, value := range toolKit.header {
 			request.Header.Add(key, value)
 		}
+
+		toolKit.header = make(map[string]string)
 	}
 
 	if !utils.IsStringEmpty(toolKit.token) {
