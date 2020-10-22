@@ -80,7 +80,7 @@ func GetOrganizationByID(orgID uint64) (*model.OrganizationInfo, error) {
 		return nil, model.ErrParam
 	}
 
-	organization, err := db.NewOrganizationQuery().NotName(adminOrganizationName).SetID(orgID).QueryOne()
+	organization, err := db.NewOrganizationQuery().SetID(orgID).QueryOne()
 	if err != nil {
 		if err == db.ErrRecordNotExist {
 			return nil, model.ErrOrganizationNotExist
