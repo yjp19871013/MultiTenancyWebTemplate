@@ -10,14 +10,19 @@ import (
 )
 
 func TestCreateUserAndDeleteUser(t *testing.T) {
-	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword, nil).
-		CreateOrganization(nil).CreateUser(testUserPassword, adminRoleName, nil).
-		DeleteUser().DeleteOrganization()
+    orgInfo := new(dto.OrganizationInfoWithID)
+    userInfo := new(dto.UserInfoWithID)
+
+	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword).
+		CreateOrganization(orgInfo).
+		CreateUser(orgInfo.ID, testUserPassword, adminRoleName, userInfo).
+		DeleteUser(orgInfo.ID, userInfo.ID).
+		DeleteOrganization(orgInfo.ID)
 }
 
 func TestGetAllUsers(t *testing.T) {
 	getUsersResponse := new(dto.GetUsersResponse)
-	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword, nil).
+	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword).
 		SetHeader("Content-Type", "application/json").
 		SetQueryParams("pageNo", "0").
 		SetQueryParams("pageSize", "0").
@@ -31,7 +36,7 @@ func TestGetAllUsers(t *testing.T) {
 
 func TestGetUsersPaging(t *testing.T) {
 	getUsersResponse := new(dto.GetUsersResponse)
-	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword, nil).
+	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword).
 		SetHeader("Content-Type", "application/json").
 		SetQueryParams("pageNo", "1").
 		SetQueryParams("pageSize", "10").
@@ -44,14 +49,14 @@ func TestGetUsersPaging(t *testing.T) {
 }
 
 func TestUpdateUserPassword(t *testing.T) {
-	var newToken string
 	orgInfo := new(dto.OrganizationInfoWithID)
 	userInfo := new(dto.UserInfoWithID)
 	updateUserPasswordResponse := new(dto.MsgResponse)
 
-	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword, nil).
+	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword).
 		CreateOrganization(orgInfo).
-		CreateUser(testUserPassword, adminRoleName, userInfo).SetHeader("Content-Type", "application/json").
+		CreateUser(orgInfo.ID, testUserPassword, adminRoleName, userInfo).
+		SetHeader("Content-Type", "application/json").
 		SetJsonBody(&dto.AdminUpdateUserPasswordRequest{
 			OrgID:    orgInfo.ID,
 			ID:       userInfo.ID,
@@ -61,14 +66,13 @@ func TestUpdateUserPassword(t *testing.T) {
 		Request("/{{ .ProjectConfig.UrlPrefix }}/api/admin/user", http.MethodPut).
 		AssertStatusCode(http.StatusOK).
 		AssertEqual(true, updateUserPasswordResponse.Success, updateUserPasswordResponse.Msg).
-		GetAccessToken(userInfo.Username, "456", &newToken).
-		AssertNotEmpty(newToken).
-		GetAccessToken(superAdminUsername, superAdminPassword, nil).
-		DeleteUser().
-		DeleteOrganization()
+		GetAccessToken(userInfo.Username, "456").
+		GetAccessToken(superAdminUsername, superAdminPassword).
+		DeleteUser(orgInfo.ID, userInfo.ID).
+		DeleteOrganization(orgInfo.ID)
 }
 
-func (toolKit *ToolKit) CreateUser(password string, role string, userInfo *dto.UserInfoWithID) *ToolKit {
+func (toolKit *ToolKit) CreateUser(orgID uint64, password string, role string, userInfo *dto.UserInfoWithID) *ToolKit {
 	uuid, err := utils.GetUUID()
 	if err != nil {
 		toolKit.t.Fatal("生成uuid失败")
@@ -81,10 +85,11 @@ func (toolKit *ToolKit) CreateUser(password string, role string, userInfo *dto.U
 	addUsersToOrganizationResponse := new(dto.MsgResponse)
 	getUsersInOrganizationResponse := new(dto.GetUsersResponse)
 
-	NewToolKit(toolKit.t).SetToken(toolKit.token).
+	NewToolKit(toolKit.t).
+	    SetToken(toolKit.token).
 		SetHeader("Content-Type", "application/json").
 		SetJsonBody(&dto.AdminCreateUserRequest{
-			OrgID:    toolKit.orgInfo.ID,
+			OrgID:    orgID,
 			Password: password,
 			UserInfo: dto.UserInfo{
 				Username: userName,
@@ -100,7 +105,7 @@ func (toolKit *ToolKit) CreateUser(password string, role string, userInfo *dto.U
 		AssertEqual(role, createUserResponse.UserInfo.RoleName).
 		SetToken(toolKit.token).
 		SetHeader("Content-Type", "application/json").
-		SetQueryParams("orgId", strconv.FormatUint(toolKit.orgInfo.ID, 10)).
+		SetQueryParams("orgId", strconv.FormatUint(orgID, 10)).
 		SetQueryParams("userId", strconv.FormatUint(createUserResponse.UserInfo.ID, 10)).
 		SetQueryParams("pageNo", "1").
 		SetQueryParams("pageSize", "1").
@@ -115,7 +120,7 @@ func (toolKit *ToolKit) CreateUser(password string, role string, userInfo *dto.U
 		SetToken(toolKit.token).
 		SetHeader("Content-Type", "application/json").
 		SetJsonBody(&dto.AdminAddUsersToOrganizationRequest{
-			OrgID:   toolKit.orgInfo.ID,
+			OrgID:   orgID,
 			UserIDs: []uint64{createUserResponse.UserInfo.ID},
 		}).
 		SetJsonResponse(addUsersToOrganizationResponse).
@@ -128,15 +133,13 @@ func (toolKit *ToolKit) CreateUser(password string, role string, userInfo *dto.U
 		SetQueryParams("pageNo", "1").
 		SetQueryParams("pageSize", "1").
 		SetJsonResponse(getUsersInOrganizationResponse).
-		Request("/{{ .ProjectConfig.UrlPrefix }}/api/admin/organization/"+strconv.FormatUint(toolKit.orgInfo.ID, 10)+"/users", http.MethodGet).
+		Request("/{{ .ProjectConfig.UrlPrefix }}/api/admin/organization/"+strconv.FormatUint(orgID, 10)+"/users", http.MethodGet).
 		AssertStatusCode(http.StatusOK).
 		AssertEqual(true, getUsersInOrganizationResponse.Success, getUsersInOrganizationResponse.Msg).
 		AssertEqual(int64(1), getUsersInOrganizationResponse.TotalCount).
 		AssertEqual(createUserResponse.UserInfo.ID, getUsersInOrganizationResponse.Infos[0].ID).
 		AssertEqual(createUserResponse.UserInfo.Username, getUsersInOrganizationResponse.Infos[0].Username).
 		AssertEqual(createUserResponse.UserInfo.RoleName, getUsersInOrganizationResponse.Infos[0].RoleName)
-
-	toolKit.userInfo = &createUserResponse.UserInfo
 
 	if userInfo != nil {
 		createUserResponseUserInfo := createUserResponse.UserInfo
@@ -148,26 +151,24 @@ func (toolKit *ToolKit) CreateUser(password string, role string, userInfo *dto.U
 	return toolKit
 }
 
-func (toolKit *ToolKit) DeleteUser() *ToolKit {
+func (toolKit *ToolKit) DeleteUser(orgID uint64, userID uint64) *ToolKit {
 	deleteUsersFromOrganizationResponse := new(dto.MsgResponse)
 	deleteUserResponse := new(dto.MsgResponse)
 
 	NewToolKit(toolKit.t).SetToken(toolKit.token).
 		SetHeader("Content-Type", "application/json").
-		SetQueryParams("orgId", strconv.FormatUint(toolKit.orgInfo.ID, 10)).
+		SetQueryParams("orgId", strconv.FormatUint(orgID, 10)).
 		SetJsonResponse(deleteUsersFromOrganizationResponse).
-		Request("/{{ .ProjectConfig.UrlPrefix }}/api/admin/delete/users/"+strconv.FormatUint(toolKit.userInfo.ID, 10), http.MethodDelete).
+		Request("/{{ .ProjectConfig.UrlPrefix }}/api/admin/delete/users/"+strconv.FormatUint(userID, 10), http.MethodDelete).
 		AssertStatusCode(http.StatusOK).
 		AssertEqual(true, deleteUsersFromOrganizationResponse.Success, deleteUsersFromOrganizationResponse.Msg).
 		SetToken(toolKit.token).
 		SetHeader("Content-Type", "application/json").
-		SetQueryParams("orgId", strconv.FormatUint(toolKit.orgInfo.ID, 10)).
+		SetQueryParams("orgId", strconv.FormatUint(orgID, 10)).
 		SetJsonResponse(deleteUserResponse).
-		Request("/{{ .ProjectConfig.UrlPrefix }}/api/admin/user/"+strconv.FormatUint(toolKit.userInfo.ID, 10), http.MethodDelete).
+		Request("/{{ .ProjectConfig.UrlPrefix }}/api/admin/user/"+strconv.FormatUint(userID, 10), http.MethodDelete).
 		AssertStatusCode(http.StatusOK).
 		AssertEqual(true, deleteUserResponse.Success, deleteUserResponse.Msg)
-
-	toolKit.userInfo = nil
 
 	return toolKit
 }

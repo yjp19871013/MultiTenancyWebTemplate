@@ -10,13 +10,16 @@ import (
 )
 
 func TestOrganizationCreateAndDelete(t *testing.T) {
-	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword, nil).
-		CreateOrganization(nil).DeleteOrganization()
+    orgInfo := new(dto.OrganizationInfoWithID)
+
+	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword).
+		CreateOrganization(orgInfo).
+		DeleteOrganization(orgInfo.ID)
 }
 
 func TestGetAllOrganizations(t *testing.T) {
 	getOrganizationsResponse := new(dto.GetOrganizationsResponse)
-	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword, nil).
+	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword).
 		SetHeader("Content-Type", "application/json").
 		SetQueryParams("pageNo", "0").
 		SetQueryParams("pageSize", "0").
@@ -30,7 +33,7 @@ func TestGetAllOrganizations(t *testing.T) {
 
 func TestGetOrganizationsPaging(t *testing.T) {
 	getOrganizationsResponse := new(dto.GetOrganizationsResponse)
-	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword, nil).
+	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword).
 		SetHeader("Content-Type", "application/json").
 		SetQueryParams("pageNo", "1").
 		SetQueryParams("pageSize", "10").
@@ -77,8 +80,6 @@ func (toolKit *ToolKit) CreateOrganization(orgInfo *dto.OrganizationInfoWithID) 
 		AssertEqual(createOrganizationResponse.ID, getOrganizationsResponse.Organizations[0].ID).
 		AssertEqual(orgName, getOrganizationsResponse.Organizations[0].Name)
 
-	toolKit.orgInfo = &createOrganizationResponse.OrganizationInfoWithID
-
 	if orgInfo != nil {
 		createOrganizationResponseOrgInfo := createOrganizationResponse.OrganizationInfoWithID
 		orgInfo.ID = createOrganizationResponseOrgInfo.ID
@@ -88,17 +89,15 @@ func (toolKit *ToolKit) CreateOrganization(orgInfo *dto.OrganizationInfoWithID) 
 	return toolKit
 }
 
-func (toolKit *ToolKit) DeleteOrganization() *ToolKit {
+func (toolKit *ToolKit) DeleteOrganization(orgID uint64) *ToolKit {
 	deleteOrganizationResponse := new(dto.MsgResponse)
 
 	NewToolKit(toolKit.t).SetToken(toolKit.token).
 		SetHeader("Content-Type", "application/json").
 		SetJsonResponse(deleteOrganizationResponse).
-		Request("/{{ .ProjectConfig.UrlPrefix }}/api/admin/organization/"+strconv.FormatUint(toolKit.orgInfo.ID, 10), http.MethodDelete).
+		Request("/{{ .ProjectConfig.UrlPrefix }}/api/admin/organization/"+strconv.FormatUint(orgID, 10), http.MethodDelete).
 		AssertStatusCode(http.StatusOK).
 		AssertEqual(true, deleteOrganizationResponse.Success, deleteOrganizationResponse.Msg)
-
-	toolKit.orgInfo = nil
 
 	return toolKit
 }

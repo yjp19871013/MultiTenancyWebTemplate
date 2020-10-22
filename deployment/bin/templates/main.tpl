@@ -24,7 +24,7 @@ func main() {
 	router.InitRouter(r)
 
 	srv := &http.Server{
-		Addr:    config.Get{{ .ProjectConfig.ProjectName }}Config().ServerConfig.Port,
+		Addr:    ":" + config.Get{{ .ProjectConfig.ProjectName }}Config().ServerConfig.Port,
 		Handler: r,
 	}
 

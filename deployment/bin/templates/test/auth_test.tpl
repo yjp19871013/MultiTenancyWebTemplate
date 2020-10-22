@@ -8,7 +8,7 @@ import (
 
 func TestChallenge(t *testing.T) {
 	challengeResponse := new(dto.ChallengeResponse)
-	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword, nil).
+	NewToolKit(t).GetAccessToken(superAdminUsername, superAdminPassword).
 		SetHeader("Content-Type", "application/json").
 		SetJsonResponse(challengeResponse).
 		Request("/{{ .ProjectConfig.UrlPrefix }}/api/challenge", http.MethodPost).
@@ -17,7 +17,7 @@ func TestChallenge(t *testing.T) {
 		AssertEqual("超级管理员", challengeResponse.Role)
 }
 
-func (toolKit *ToolKit) GetAccessToken(username string, password string, retToken *string) *ToolKit {
+func (toolKit *ToolKit) GetAccessToken(username string, password string) *ToolKit {
 	getAccessTokenResponse := new(dto.GetAccessTokenResponse)
 
 	NewToolKit(toolKit.t).SetHeader("Content-Type", "application/json").
@@ -32,10 +32,6 @@ func (toolKit *ToolKit) GetAccessToken(username string, password string, retToke
 		AssertNotEmpty(getAccessTokenResponse.AccessToken)
 
 	toolKit.token = getAccessTokenResponse.AccessToken
-
-	if retToken != nil {
-		*retToken = getAccessTokenResponse.AccessToken
-	}
 
 	return toolKit
 }

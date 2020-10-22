@@ -1,6 +1,6 @@
 version: {{ .ProjectConfig.Version }}
 server:
-  port: :{{ .ServerConfig.Port }}
+  port: {{ .ServerConfig.Port }}
 database:
   username: {{ .DatabaseConfig.Username }}
   password: {{ .DatabaseConfig.Password }}

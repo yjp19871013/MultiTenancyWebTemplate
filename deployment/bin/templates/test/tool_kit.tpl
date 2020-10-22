@@ -2,7 +2,6 @@ package test
 
 import (
 	"bytes"
-	"{{ .ProjectConfig.PackageName }}/api/dto"
 	"{{ .ProjectConfig.PackageName }}/router"
 	"{{ .ProjectConfig.PackageName }}/service"
 	"{{ .ProjectConfig.PackageName }}/utils"
@@ -24,8 +23,6 @@ type ToolKit struct {
 	queryParams  map[string]string
 	jsonResponse interface{}
 	token        string
-	orgInfo      *dto.OrganizationInfoWithID
-	userInfo     *dto.UserInfoWithID
 
 	responseRecorder *httptest.ResponseRecorder
 }
