@@ -27,9 +27,11 @@ type ToolKit struct {
 	responseRecorder *httptest.ResponseRecorder
 }
 
-func NewToolKit(t *testing.T) *ToolKit {
-	service.Init()
+func init() {
+    service.Init()
+}
 
+func NewToolKit(t *testing.T) *ToolKit {
 	return &ToolKit{
 		t:           t,
 		header:      make(map[string]string),
