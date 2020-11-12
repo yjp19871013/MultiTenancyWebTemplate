@@ -30,12 +30,16 @@ func Challenge(c *gin.Context) {
         }
     }()
 
-    userInfo, err := middleware.GetContextUserInfo(c)
-    if err != nil {
-        c.JSON(http.StatusUnauthorized, dto.ChallengeResponse{
+    formFailureResponse := func() *dto.ChallengeResponse {
+        return &dto.ChallengeResponse{
             MsgResponse: dto.FormFailureMsgResponse("Token检查未通过", err),
             Role:        userInfo.RoleName,
-        })
+        }
+    }
+
+    userInfo, err := middleware.GetContextUserInfo(c)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, formFailureResponse())
         return
     }
 
@@ -66,22 +70,23 @@ func GetAccessToken(c *gin.Context) {
 		}
 	}()
 
+	formFailureResponse := func() *dto.GetAccessTokenResponse {
+        return &dto.GetAccessTokenResponse{
+            MsgResponse: dto.FormFailureMsgResponse("获取Token失败", err),
+            AccessToken: "",
+        }
+    }
+
 	request := &dto.GetAccessTokenRequest{}
 	err = c.ShouldBindJSON(request)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.GetAccessTokenResponse{
-			MsgResponse: dto.FormFailureMsgResponse("获取Token失败", err),
-			AccessToken: "",
-		})
+		c.JSON(http.StatusBadRequest, formFailureResponse())
 		return
 	}
 
 	token, err := service.GetAndUpdateAccessToken(request.Username, request.Password)
 	if err != nil {
-		c.JSON(http.StatusOK, dto.GetAccessTokenResponse{
-			MsgResponse: dto.FormFailureMsgResponse("获取Token失败", err),
-			AccessToken: "",
-		})
+		c.JSON(http.StatusOK, formFailureResponse())
 		return
 	}
 
