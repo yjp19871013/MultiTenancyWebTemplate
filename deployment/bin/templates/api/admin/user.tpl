@@ -33,31 +33,29 @@ func CreateUser(c *gin.Context) {
 		}
 	}()
 
+	formFailureResponse := func() *dto.CreateUserResponse {
+        return &dto.CreateUserResponse{
+            MsgResponse: dto.FormFailureMsgResponse("创建用户失败", err),
+            UserInfo:    *dto.FormUserInfoWithID(nil),
+        }
+    }
+
 	request := new(dto.AdminCreateUserRequest)
 	err = c.ShouldBindJSON(request)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.CreateUserResponse{
-			MsgResponse: dto.FormFailureMsgResponse("创建用户失败", err),
-			UserInfo:    *dto.FormUserInfoWithID(nil),
-		})
+		c.JSON(http.StatusBadRequest, *formFailureResponse())
 		return
 	}
 
 	orgInfo, err := middleware.GetContextParamOrgInfo(c)
     if err != nil {
-        c.JSON(http.StatusOK, dto.CreateUserResponse{
-            MsgResponse: dto.FormFailureMsgResponse("创建用户失败", err),
-            UserInfo:    *dto.FormUserInfoWithID(nil),
-        })
+        c.JSON(http.StatusOK, *formFailureResponse())
         return
     }
 
     userInfo, err := service.CreateCommonUser(orgInfo, request.Username, request.Password, request.RoleName)
     if err != nil {
-        c.JSON(http.StatusOK, dto.CreateUserResponse{
-            MsgResponse: dto.FormFailureMsgResponse("创建用户", err),
-            UserInfo:    *dto.FormUserInfoWithID(nil),
-        })
+        c.JSON(http.StatusOK,*formFailureResponse())
         return
     }
 
@@ -184,24 +182,24 @@ func GetUsers(c *gin.Context) {
 		}
 	}()
 
+    formFailureResponse := func() *dto.GetUsersResponse {
+        return &dto.GetUsersResponse{
+            MsgResponse: dto.FormFailureMsgResponse("获取用户失败", err),
+            TotalCount:  0,
+            Infos:       dto.FormUserInfoWithIDBatch(nil),
+        }
+    }
+
 	query := new(dto.AdminGetUsersQuery)
 	err = c.ShouldBindQuery(query)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.GetUsersResponse{
-			MsgResponse: dto.FormFailureMsgResponse("获取用户失败", err),
-			TotalCount:  0,
-			Infos:       dto.FormUserInfoWithIDBatch(nil),
-		})
+		c.JSON(http.StatusBadRequest, *formFailureResponse())
 		return
 	}
 
 	userInfos, totalCount, err := service.GetUsers(query.OrgID, query.UserID, query.PageNo, query.PageSize)
 	if err != nil {
-		c.JSON(http.StatusOK, dto.GetUsersResponse{
-			MsgResponse: dto.FormFailureMsgResponse("获取用户失败", err),
-			TotalCount:  0,
-			Infos:       dto.FormUserInfoWithIDBatch(nil),
-		})
+		c.JSON(http.StatusOK, *formFailureResponse())
 		return
 	}
 

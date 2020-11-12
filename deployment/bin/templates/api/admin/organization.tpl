@@ -33,22 +33,23 @@ func CreateOrganization(c *gin.Context) {
         }
     }()
 
+    formFailureResponse := func() *dto.CreateOrganizationResponse {
+        return &dto.CreateOrganizationResponse{
+            MsgResponse:            dto.FormFailureMsgResponse("创建组织失败", err),
+            OrganizationInfoWithID: *dto.FormOrganizationInfoWithID(nil),
+        }
+    }
+
 	request := new(dto.CreateOrganizationRequest)
 	err = c.ShouldBindJSON(request)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.CreateOrganizationResponse{
-			MsgResponse:            dto.FormFailureMsgResponse("创建组织失败", err),
-			OrganizationInfoWithID: *dto.FormOrganizationInfoWithID(nil),
-		})
+		c.JSON(http.StatusBadRequest, *formFailureResponse())
 		return
 	}
 
 	orgInfo, err := service.CreateOrganization(request.Name)
 	if err != nil {
-		c.JSON(http.StatusOK, dto.CreateOrganizationResponse{
-			MsgResponse:            dto.FormFailureMsgResponse("创建组织失败", err),
-			OrganizationInfoWithID: *dto.FormOrganizationInfoWithID(nil),
-		})
+		c.JSON(http.StatusOK, *formFailureResponse())
 		return
 	}
 
@@ -123,24 +124,24 @@ func GetOrganizations(c *gin.Context) {
 		}
 	}()
 
+	formFailureResponse := func() *dto.GetOrganizationsResponse {
+        return &dto.GetOrganizationsResponse{
+            MsgResponse:   dto.FormFailureMsgResponse("获取组织失败", err),
+            TotalCount:    0,
+            Organizations: dto.FormOrganizationInfoWithIDBatch(nil),
+        }
+    }
+
 	query := new(dto.GetOrganizationsQuery)
 	err = c.ShouldBindQuery(query)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.GetOrganizationsResponse{
-			MsgResponse:   dto.FormFailureMsgResponse("获取组织失败", err),
-			TotalCount:    0,
-			Organizations: dto.FormOrganizationInfoWithIDBatch(nil),
-		})
+		c.JSON(http.StatusBadRequest, *formFailureResponse())
 		return
 	}
 
 	orgInfos, totalCount, err := service.GetOrganizations(query.OrgID, query.PageNo, query.PageSize)
 	if err != nil {
-		c.JSON(http.StatusOK, dto.GetOrganizationsResponse{
-			MsgResponse:   dto.FormFailureMsgResponse("获取组织失败", err),
-			TotalCount:    0,
-			Organizations: dto.FormOrganizationInfoWithIDBatch(nil),
-		})
+		c.JSON(http.StatusOK, *formFailureResponse())
 		return
 	}
 

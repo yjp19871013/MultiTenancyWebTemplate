@@ -28,12 +28,17 @@ func GetRoles(c *gin.Context) {
 		}
 	}()
 
+	formFailureResponse := func() *dto.GetRoleNamesResponse {
+        return &dto.GetRoleNamesResponse{
+           MsgResponse: dto.FormFailureMsgResponse("获取角色失败", err),
+           TotalCount:  0,
+           RoleNames:   make([]string, 0),
+       }
+    }
+
 	roleNames, err := service.GetRoles()
 	if err != nil {
-		c.JSON(http.StatusOK, dto.GetRoleNamesResponse{
-			MsgResponse: dto.FormSuccessMsgResponse("获取角色成功"),
-			RoleNames:   make([]string, 0),
-		})
+		c.JSON(http.StatusOK, *formFailureResponse())
 		return
 	}
 

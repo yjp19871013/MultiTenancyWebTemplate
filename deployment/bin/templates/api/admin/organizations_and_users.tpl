@@ -122,44 +122,37 @@ func GetUsersInOrganization(c *gin.Context) {
 		}
 	}()
 
+    formFailureResponse := func() *dto.GetUsersResponse {
+        return &dto.GetUsersResponse{
+            MsgResponse: dto.FormFailureMsgResponse("获取组织包含的用户失败", err),
+            TotalCount:  0,
+            Infos:       dto.FormUserInfoWithIDBatch(nil),
+        }
+    }
+
 	orgIDStr := c.Param("orgId")
 	if utils.IsStringEmpty(orgIDStr) {
-		c.JSON(http.StatusBadRequest, dto.GetUsersResponse{
-			MsgResponse: dto.FormFailureMsgResponse("获取组织包含的用户失败", errors.New("没有传递组织ID")),
-			TotalCount:  0,
-			Infos:       dto.FormUserInfoWithIDBatch(nil),
-		})
+	    err = errors.New("没有传递组织ID")
+		c.JSON(http.StatusBadRequest, *formFailureResponse())
 		return
 	}
 
 	orgID, err := strconv.ParseUint(orgIDStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.GetUsersResponse{
-			MsgResponse: dto.FormFailureMsgResponse("获取组织包含的用户失败", err),
-			TotalCount:  0,
-			Infos:       dto.FormUserInfoWithIDBatch(nil),
-		})
+		c.JSON(http.StatusBadRequest, *formFailureResponse())
 		return
 	}
 
 	query := new(dto.AdminGetUsersInOrganizationQuery)
 	err = c.ShouldBindQuery(query)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.GetUsersResponse{
-			MsgResponse: dto.FormFailureMsgResponse("获取组织包含的用户失败", err),
-			TotalCount:  0,
-			Infos:       dto.FormUserInfoWithIDBatch(nil),
-		})
+		c.JSON(http.StatusBadRequest, *formFailureResponse())
 		return
 	}
 
 	users, totalCount, err := service.GetUsersInOrganization(orgID, query.UserID, query.PageNo, query.PageSize)
 	if err != nil {
-		c.JSON(http.StatusOK, dto.GetUsersResponse{
-			MsgResponse: dto.FormFailureMsgResponse("获取组织包含的用户失败", err),
-			TotalCount:  0,
-			Infos:       dto.FormUserInfoWithIDBatch(nil),
-		})
+		c.JSON(http.StatusOK, *formFailureResponse())
 		return
 	}
 
