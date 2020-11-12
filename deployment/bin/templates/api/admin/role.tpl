@@ -37,7 +37,7 @@ func GetRoles(c *gin.Context) {
 
 	roleNames, err := service.GetRoles()
 	if err != nil {
-		c.JSON(http.StatusOK, *formFailureResponse())
+		c.JSON(http.StatusOK, formFailureResponse())
 		return
 	}
 

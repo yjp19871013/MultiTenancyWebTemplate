@@ -43,13 +43,13 @@ func CreateOrganization(c *gin.Context) {
 	request := new(dto.CreateOrganizationRequest)
 	err = c.ShouldBindJSON(request)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, *formFailureResponse())
+		c.JSON(http.StatusBadRequest, formFailureResponse())
 		return
 	}
 
 	orgInfo, err := service.CreateOrganization(request.Name)
 	if err != nil {
-		c.JSON(http.StatusOK, *formFailureResponse())
+		c.JSON(http.StatusOK, formFailureResponse())
 		return
 	}
 
@@ -135,13 +135,13 @@ func GetOrganizations(c *gin.Context) {
 	query := new(dto.GetOrganizationsQuery)
 	err = c.ShouldBindQuery(query)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, *formFailureResponse())
+		c.JSON(http.StatusBadRequest, formFailureResponse())
 		return
 	}
 
 	orgInfos, totalCount, err := service.GetOrganizations(query.OrgID, query.PageNo, query.PageSize)
 	if err != nil {
-		c.JSON(http.StatusOK, *formFailureResponse())
+		c.JSON(http.StatusOK, formFailureResponse())
 		return
 	}
 

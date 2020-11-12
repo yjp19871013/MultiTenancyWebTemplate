@@ -133,26 +133,26 @@ func GetUsersInOrganization(c *gin.Context) {
 	orgIDStr := c.Param("orgId")
 	if utils.IsStringEmpty(orgIDStr) {
 	    err = errors.New("没有传递组织ID")
-		c.JSON(http.StatusBadRequest, *formFailureResponse())
+		c.JSON(http.StatusBadRequest, formFailureResponse())
 		return
 	}
 
 	orgID, err := strconv.ParseUint(orgIDStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, *formFailureResponse())
+		c.JSON(http.StatusBadRequest, formFailureResponse())
 		return
 	}
 
 	query := new(dto.AdminGetUsersInOrganizationQuery)
 	err = c.ShouldBindQuery(query)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, *formFailureResponse())
+		c.JSON(http.StatusBadRequest, formFailureResponse())
 		return
 	}
 
 	users, totalCount, err := service.GetUsersInOrganization(orgID, query.UserID, query.PageNo, query.PageSize)
 	if err != nil {
-		c.JSON(http.StatusOK, *formFailureResponse())
+		c.JSON(http.StatusOK, formFailureResponse())
 		return
 	}
 

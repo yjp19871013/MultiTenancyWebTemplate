@@ -43,19 +43,19 @@ func CreateUser(c *gin.Context) {
 	request := new(dto.AdminCreateUserRequest)
 	err = c.ShouldBindJSON(request)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, *formFailureResponse())
+		c.JSON(http.StatusBadRequest, formFailureResponse())
 		return
 	}
 
 	orgInfo, err := middleware.GetContextParamOrgInfo(c)
     if err != nil {
-        c.JSON(http.StatusOK, *formFailureResponse())
+        c.JSON(http.StatusOK, formFailureResponse())
         return
     }
 
     userInfo, err := service.CreateCommonUser(orgInfo, request.Username, request.Password, request.RoleName)
     if err != nil {
-        c.JSON(http.StatusOK,*formFailureResponse())
+        c.JSON(http.StatusOK, formFailureResponse())
         return
     }
 
@@ -193,13 +193,13 @@ func GetUsers(c *gin.Context) {
 	query := new(dto.AdminGetUsersQuery)
 	err = c.ShouldBindQuery(query)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, *formFailureResponse())
+		c.JSON(http.StatusBadRequest, formFailureResponse())
 		return
 	}
 
 	userInfos, totalCount, err := service.GetUsers(query.OrgID, query.UserID, query.PageNo, query.PageSize)
 	if err != nil {
-		c.JSON(http.StatusOK, *formFailureResponse())
+		c.JSON(http.StatusOK, formFailureResponse())
 		return
 	}
 
