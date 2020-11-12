@@ -31,7 +31,6 @@ func GetRoles(c *gin.Context) {
 	formFailureResponse := func() *dto.GetRoleNamesResponse {
         return &dto.GetRoleNamesResponse{
            MsgResponse: dto.FormFailureMsgResponse("获取角色失败", err),
-           TotalCount:  0,
            RoleNames:   make([]string, 0),
        }
     }
