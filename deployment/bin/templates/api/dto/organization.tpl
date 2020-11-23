@@ -29,7 +29,7 @@ type OrganizationInfo struct {
 
 type OrganizationInfoWithID struct {
 	ID   uint64 `json:"id" binding:"required"`
-	Name string `json:"name" binding:"required"`
+	OrganizationInfo
 }
 
 func FormOrganizationInfoWithID(orgInfo *model.OrganizationInfo) *OrganizationInfoWithID {
