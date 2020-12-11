@@ -32,6 +32,14 @@ type OrganizationInfoWithID struct {
 	OrganizationInfo
 }
 
+func FormOrganizationInfo(orgInfo *model.OrganizationInfo) *OrganizationInfo {
+	if orgInfo == nil {
+		return &OrganizationInfo{}
+	}
+
+	return &OrganizationInfo{Name: orgInfo.Name}
+}
+
 func FormOrganizationInfoWithID(orgInfo *model.OrganizationInfo) *OrganizationInfoWithID {
 	if orgInfo == nil {
 		return &OrganizationInfoWithID{}
@@ -39,7 +47,7 @@ func FormOrganizationInfoWithID(orgInfo *model.OrganizationInfo) *OrganizationIn
 
 	return &OrganizationInfoWithID{
 		ID:   orgInfo.ID,
-		Name: orgInfo.Name,
+		OrganizationInfo: *FormOrganizationInfo(orgInfo),
 	}
 }
 

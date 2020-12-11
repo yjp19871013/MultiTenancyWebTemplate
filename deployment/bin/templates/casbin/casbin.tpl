@@ -7,6 +7,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"{{ .ProjectConfig.PackageName }}/config"
 	"strconv"
+	"sync"
 )
 
 const (
@@ -14,6 +15,7 @@ const (
 )
 
 var enforcer *casbin.Enforcer
+var enforcerMutex sync.Mutex
 
 func init() {
 	template := "%s:%s@tcp(%s)/%s"
@@ -24,6 +26,9 @@ func init() {
 		panic(err)
 	}
 
+	enforcerMutex.Lock()
+    defer enforcerMutex.Unlock()
+
 	enforcer, err = casbin.NewEnforcer(config.Get{{ .ProjectConfig.ProjectName }}Config().CasbinConfig.ConfigFilePath, a)
 	if err != nil {
 		panic(err)
@@ -31,6 +36,9 @@ func init() {
 }
 
 func AddRolePolicy(domain string, roleName string, resource string, action string) error {
+    enforcerMutex.Lock()
+    defer enforcerMutex.Unlock()
+
 	err := enforcer.LoadPolicy()
 	if err != nil {
 		return err
@@ -45,6 +53,9 @@ func AddRolePolicy(domain string, roleName string, resource string, action strin
 }
 
 func AddRoleForUser(domain string, userID uint64, roleName string) error {
+    enforcerMutex.Lock()
+    defer enforcerMutex.Unlock()
+
 	err := enforcer.LoadPolicy()
 	if err != nil {
 		return err
@@ -59,6 +70,9 @@ func AddRoleForUser(domain string, userID uint64, roleName string) error {
 }
 
 func HasPermission(domain string, roleName string, resource string, action string) (bool, error) {
+    enforcerMutex.Lock()
+    defer enforcerMutex.Unlock()
+
 	err := enforcer.LoadPolicy()
 	if err != nil {
 		return false, err
@@ -68,6 +82,9 @@ func HasPermission(domain string, roleName string, resource string, action strin
 }
 
 func HasRole(roleName string) (bool, error) {
+    enforcerMutex.Lock()
+    defer enforcerMutex.Unlock()
+
 	err := enforcer.LoadPolicy()
 	if err != nil {
 		return false, err
@@ -82,6 +99,9 @@ func HasRole(roleName string) (bool, error) {
 }
 
 func GetRoleNames(superRoleName string) ([]string, error) {
+    enforcerMutex.Lock()
+    defer enforcerMutex.Unlock()
+
 	err := enforcer.LoadPolicy()
 	if err != nil {
 		return nil, err
@@ -105,6 +125,9 @@ func GetRoleNames(superRoleName string) ([]string, error) {
 }
 
 func DeleteRoleForUser(domain string, userID uint64, roleName string) error {
+    enforcerMutex.Lock()
+    defer enforcerMutex.Unlock()
+
 	err := enforcer.LoadPolicy()
 	if err != nil {
 		return err
@@ -119,6 +142,9 @@ func DeleteRoleForUser(domain string, userID uint64, roleName string) error {
 }
 
 func Enforce(rvals ...interface{}) (bool, error) {
+    enforcerMutex.Lock()
+    defer enforcerMutex.Unlock()
+
 	err := enforcer.LoadPolicy()
 	if err != nil {
 		return false, err

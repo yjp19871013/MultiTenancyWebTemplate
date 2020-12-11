@@ -33,7 +33,7 @@ func Challenge(c *gin.Context) {
     formFailureResponse := func() *dto.ChallengeResponse {
         return &dto.ChallengeResponse{
             MsgResponse: dto.FormFailureMsgResponse("Token检查未通过", err),
-            Role:        userInfo.RoleName,
+            Role:        "",
         }
     }
 
