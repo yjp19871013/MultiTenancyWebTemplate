@@ -52,15 +52,17 @@ func GetAndUpdateAccessToken(username string, password string) (string, error) {
 		return "", err
 	}
 	
-	httpRequest := &http.Request{Header: make(http.Header)}
-	httpRequest.Header.Add("Authorization", user.Token)
-	valid, err := checkJWT(httpRequest)
-	if err != nil {
-		return "", err
-	}
+	if !utils.IsStringEmpty(user.Token) {
+		httpRequest := &http.Request{Header: make(http.Header)}
+		httpRequest.Header.Add("Authorization", user.Token)
+			valid, err := checkJWT(httpRequest)
+		if err != nil {
+			return "", err
+		}
 
-	if valid {
-		return user.Token, nil
+		if valid {
+			return user.Token, nil
+		}
 	}
 
 	token, err := newJWT(strconv.FormatUint(user.ID, 10), userAccessTokenExpSec)
